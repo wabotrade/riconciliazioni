@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 
 // 1. Configurazione del Database MySQL (Aggiornata con i dati di Hostinger)
 const dbConfig = {
-    host: 'localhost', 
+    host: '127.0.0.1', 
     user: 'u404268549_ricon',
     // Prova a usare la variabile sicura, altrimenti usa la password in chiaro (CAMBIALA APPENA PUOI SUL DB!)
     password: process.env.DB_PASSWORD || 'Mdz7tsXD^3', 

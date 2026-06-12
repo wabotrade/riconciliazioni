@@ -228,6 +228,11 @@
 
     <script>
         // ==========================================
+        // 0. VARIABILI GLOBALI DI CONTROLLO
+        // ==========================================
+        let ultimiMovimentiCaricati = []; // Memorizza lo storico per fare i controlli matematici sui contatori
+
+        // ==========================================
         // 1. LOGICA DI NAVIGAZIONE A SCHEDE (TABS)
         // ==========================================
         document.querySelectorAll('.tab-btn').forEach(button => {
@@ -239,7 +244,6 @@
                 const targetId = button.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
 
-                // Quando l'utente cambia impianto, scarichiamo i dati dal DB immediatamente
                 let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : 'Annibaliano');
                 loadDatabaseData(nomeImpianto);
             });
@@ -259,7 +263,7 @@
                 if(data.success) {
                     if (mostraAlert) {
                         alert("Operazione registrata correttamente in MySQL!");
-                        loadDatabaseData(payload.impianto); // Ricarica lo storico aggiornato
+                        loadDatabaseData(payload.impianto); 
                     }
                 } else {
                     alert("Errore del Server DB: " + data.error);
@@ -283,12 +287,12 @@
                     return; 
                 }
                 
-                const data = response.data;
+                // Salviamo i dati nello storico globale per usarli nelle validazioni dei contatori
+                ultimiMovimentiCaricati = response.data; 
                 
-                // Aggiorna i contatori grafici in alto con l'ultima giacenza disponibile
+                const data = response.data;
                 aggiornaContatoriGiacenza(impianto, data);
 
-                // Smista i dati nelle tabelle corrette
                 if (impianto === 'Casal dei Pazzi') {
                     riempiTabellaSdoppiata(data, 'tbl_diesel_casal', 'tbl_benzina_casal');
                 } else if (impianto === 'Portuense') {
@@ -301,7 +305,43 @@
         }
 
         // ==========================================
-        // 4. FUNZIONI DI COSTRUZIONE DELLE TABELLE HTML
+        // 4. FUNZIONI FILTRO E LOGICA DI VALIDAZIONE INTELLIGENTE
+        // ==========================================
+        function estraiContatorePrecedente(dettagli, nomePompa) {
+            // Estrae il numero associato alla pompa (es: cerca "A1:" o "P1:")
+            const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
+            const match = dettagli.match(regex);
+            return match ? parseFloat(match[1]) : null;
+        }
+
+        function validaContatorePompa(carburante, nomePompa, nuovoValore) {
+            nuovoValore = parseFloat(nuovoValore);
+            if (isNaN(nuovoValore)) return true;
+
+            // Trova l'ultima chiusura disponibile nel database per questo specifico carburante
+            const ultimaChiusura = ultimiMovimentiCaricati.find(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (!ultimaChiusura) return true; // Nessun dato precedente, salta il controllo
+
+            const valorePrecedente = estraiContatorePrecedente(ultimaChiusura.dettagli, nomePompa);
+            if (valorePrecedente === null) return true; // Pompa non trovata nel testo, salta
+
+            // Controllo 1: Errore bloccante (Nuovo valore minore del precedente)
+            if (nuovoValore < valorePrecedente) {
+                alert(`🚨 ERRORE BLOCCANTE - POMPA ${nomePompa}\n\nIl contatore digitato (${nuovoValore}) è INFERIORE rispetto all'ultimo dato salvato (${valorePrecedente}).\n\nL'invio è stato ANNULLATO per evitare di sballare i dati. Controlla e correggi.`);
+                return false;
+            }
+
+            // Controllo 2: Avviso di anomalia (Salto superiore a 2000 unità)
+            if (nuovoValore > valorePrecedente + 2000) {
+                const confermaAnomalia = confirm(`⚠️ RILEVATA ANOMALIA - POMPA ${nomePompa}\n\nIl valore inserito (${nuovoValore}) supera di oltre 2000 litri l'ultima lettura (${valorePrecedente}).\n\nSei ASSOLUTAMENTE SICURO che non sia un errore di battitura?\n\nClicca OK per forzare l'invio, o ANNULLA per correggere.`);
+                if (!confermaAnomalia) return false;
+            }
+
+            return true;
+        }
+
+        // ==========================================
+        // 5. COSTRUZIONE DELLE TABELLE HTML
         // ==========================================
         function riempiTabellaSdoppiata(data, idDiesel, idBenzina) {
             const tbDiesel = document.getElementById(idDiesel);
@@ -348,11 +388,7 @@
             });
         }
 
-        // ==========================================
-        // 5. FUNZIONE AGGIORNAMENTO GRAFICO CISTERNE
-        // ==========================================
         function aggiornaContatoriGiacenza(impianto, data) {
-            // Cerca il record più recente (il primo della lista, visto che l'SQL ordina per DESC) per ogni carburante
             const ultimoDiesel = data.find(r => r.carburante === 'Diesel' && r.operazione.includes("Chiusura"));
             const ultimaBenzina = data.find(r => r.carburante === 'Benzina' && r.operazione.includes("Chiusura"));
             
@@ -365,13 +401,13 @@
             } else if (impianto === 'Portuense') {
                 const ultimoDieselPlus = data.find(r => r.carburante === 'Diesel+' && r.operazione.includes("Chiusura"));
                 document.getElementById('stock_diesel_port').innerText = ultimoDiesel ? `${ultimoDiesel.giacenza_reale} L` : '0 L';
-                document.getElementById('stock_dieselplus_port').innerText = ultimoDieselPlus ? `${ultimoDieselPlus.giacenza_reale} L` : '0 L';
+                document.getElementById('stock_dieselplus_port').innerText = ultimoDieselPlus ? `${ultimoDieselPlus.giaczenza_reale || ultimoDieselPlus.giacenza_reale} L` : '0 L';
                 document.getElementById('stock_benzina_port').innerText = ultimaBenzina ? `${ultimaBenzina.giacenza_reale} L` : '0 L';
             }
         }
 
         // ==========================================
-        // 6. ESTRAZIONE DATI DAI FORM DI INTERFACCIA
+        // 6. ESTRAZIONE DATI DAI FORM CON VALIDAZIONE ATTIVA
         // ==========================================
         function inviaChiusura(event, impianto) {
             event.preventDefault();
@@ -386,28 +422,53 @@
                 const cB3 = document.getElementById('c_B3_casal').value;
                 const rB = document.getElementById('stock_B_real_casal').value;
 
-                // Inviamo riga Diesel e riga Benzina separatamente su SQL
+                // Execution delle validazioni intelligenti
+                if (!validaContatorePompa("Diesel", "A1", cA1)) return;
+                if (!validaContatorePompa("Diesel", "B1", cB1)) return;
+                if (!validaContatorePompa("Benzina", "A3", cA3)) return;
+                if (!validaContatorePompa("Benzina", "B3", cB3)) return;
+
+                // Conferma visiva finale di riepilogo
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
+                if (!conferma) return;
+
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }, false);
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `A3: ${cA3} | B3: ${cB3}`, giacenza_reale: rB }, true);
                 event.target.reset();
             } 
             else if (impianto === 'Portuense') {
-                // Diesel Standard
                 const c1 = document.getElementById('c_1_port').value; const c4 = document.getElementById('c_4_port').value;
                 const c7 = document.getElementById('c_7_port').value; const c10 = document.getElementById('c_10_port').value;
                 const rD1 = parseFloat(document.getElementById('stock_D1_real_port').value || 0);
                 const rD2 = parseFloat(document.getElementById('stock_D2_real_port').value || 0);
 
-                // Diesel+ Premium
                 const c2 = document.getElementById('c_2_port').value; const c5 = document.getElementById('c_5_port').value;
                 const c8 = document.getElementById('c_8_port').value; const c11 = document.getElementById('c_11_port').value;
                 const rDP = document.getElementById('stock_DP_real_port').value;
 
-                // Benzina
                 const c3 = document.getElementById('c_3_port').value; const c6 = document.getElementById('c_6_port').value;
                 const c9 = document.getElementById('c_9_port').value; const c12 = document.getElementById('c_12_port').value;
                 const rB4 = parseFloat(document.getElementById('stock_B4_real_port').value || 0);
                 const rB5 = parseFloat(document.getElementById('stock_B5_real_port').value || 0);
+
+                // Esecuzione verifiche matematiche su tutte le linee
+                if (!validaContatorePompa("Diesel", "P1", c1)) return;
+                if (!validaContatorePompa("Diesel", "P4", c4)) return;
+                if (!validaContatorePompa("Diesel", "P7", c7)) return;
+                if (!validaContatorePompa("Diesel", "P10", c10)) return;
+
+                if (!validaContatorePompa("Diesel+", "P2", c2)) return;
+                if (!validaContatorePompa("Diesel+", "P5", c5)) return;
+                if (!validaContatorePompa("Diesel+", "P8", c8)) return;
+                if (!validaContatorePompa("Diesel+", "P11", c11)) return;
+
+                if (!validaContatorePompa("Benzina", "P3", c3)) return;
+                if (!validaContatorePompa("Benzina", "P6", c6)) return;
+                if (!validaContatorePompa("Benzina", "P9", c9)) return;
+                if (!validaContatorePompa("Benzina", "P12", c12)) return;
+
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
+                if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel+", dettagli: `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
@@ -420,6 +481,15 @@
 
                 const c3 = document.getElementById('c_3_ann').value; const c8 = document.getElementById('c_8_ann').value;
                 const rB = document.getElementById('stock_B_real_ann').value;
+
+                // Esecuzione verifiche matematiche
+                if (!validaContatorePompa("Diesel", "P1", c1)) return;
+                if (!validaContatorePompa("Diesel", "P6", c6)) return;
+                if (!validaContatorePompa("Benzina", "P3", c3)) return;
+                if (!validaContatorePompa("Benzina", "P8", c8)) return;
+
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nDIESEL: P1:${c1} | P6:${c6} -> Reale: ${rD}L\nBENZINA: P3:${c3} | P8:${c8} -> Reale: ${rB}L\n\nInviare i dati?`);
+                if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1: ${c1} | P6: ${c6}`, giacenza_reale: rD }, false);
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
@@ -436,12 +506,13 @@
             if(impianto === 'Portuense') { targetCisterna = document.getElementById('select_cisterna_port').value; litri = document.getElementById('litri_carico_port').value; }
             if(impianto === 'Annibaliano') { targetCisterna = document.getElementById('select_cisterna_ann').value; litri = document.getElementById('litri_carico_ann').value; }
 
+            const conferma = confirm(`❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità: +${litri} Litri\n\nVuoi registrare il carico?`);
+            if (!conferma) return;
+
             inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: `Autobotte: +${litri} L`, giacenza_reale: 0 }, true);
             event.target.reset();
         }
 
-        // Avvio iniziale automatico appena carichi la pagina (mostra Casal dei Pazzi)
+        // Avvio iniziale automatico sulla Home (Casal dei Pazzi)
         document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
     </script>
-</body>
-</html>

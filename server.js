@@ -1,16 +1,26 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const path = require('path'); // <-- AGGIUNTO: Necessario per leggere i file della cartella
 
 const app = express();
 app.use(cors());
 app.use(express.json()); // Permette al server di leggere i JSON in arrivo
 
+// <-- AGGIUNTO: Dice al server che questa cartella contiene file visibili al pubblico
+app.use(express.static(__dirname));
+
+// <-- AGGIUNTO: Quando visiti il dominio principale, ti serve il file index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // 1. Configurazione del Database MySQL (Aggiornata con i dati di Hostinger)
 const dbConfig = {
     host: 'localhost', 
     user: 'u404268549_ricon',
-    password: 'Mdz7tsXD^3', // <--- Metti qui la nuova password che hai impostato su Hostinger!
+    // Prova a usare la variabile sicura, altrimenti usa la password in chiaro (CAMBIALA APPENA PUOI SUL DB!)
+    password: process.env.DB_PASSWORD || 'Mdz7tsXD^3', 
     database: 'u404268549_ricon'
 };
 

@@ -341,7 +341,7 @@
         }
 
         // ==========================================
-        // 5. COSTRUZIONE DELLE TABELLE HTML
+        // 5. COSTRUZIONE DELLE TABELLE HTML CON COLORE SFRIDO
         // ==========================================
         function riempiTabellaSdoppiata(data, idDiesel, idBenzina) {
             const tbDiesel = document.getElementById(idDiesel);
@@ -357,7 +357,14 @@
             data.forEach(row => {
                 const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
                 const badgeClass = row.operazione.includes("Carico") ? "badge-carico" : "badge-diesel";
-                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${row.sfrido !== null ? row.sfrido : '-'}</td></tr>`;
+                
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
+
+                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td></tr>`;
                 
                 if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
                 if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
@@ -378,31 +385,55 @@
                 let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
                 if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
 
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
+
                 const tr = `<tr>
                     <td>${dataFormattata}</td>
                     <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
                     <td>${row.dettagli}</td>
-                    <td>${row.sfrido !== null ? row.sfrido : '-'}</td>
+                    <td>${sfridoTesto}</td>
                 </tr>`;
                 tb.innerHTML += tr;
             });
         }
 
-        function aggiornaContatoriGiacenza(impianto, data) {
-            const ultimoDiesel = data.find(r => r.carburante === 'Diesel' && r.operazione.includes("Chiusura"));
-            const ultimaBenzina = data.find(r => r.carburante === 'Benzina' && r.operazione.includes("Chiusura"));
+        // ==========================================
+        // 5b. FUNZIONE CALCOLO GIACENZA ATTUALE (CHIUSURA + CARICHI MUTUALI)
+        // ==========================================
+        function calcolaGiacenzaAttuale(carburante, data) {
+            const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (idxChiusura === -1) return 0;
             
+            let totale = parseFloat(data[idxChiusura].giacenza_reale || 0);
+            
+            for (let i = 0; i < idxChiusura; i++) {
+                if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
+                    const match = data[i].dettagli.match(/\+\s*([\d.]+)/);
+                    if (match) totale += parseFloat(match[1]);
+                }
+            }
+            return totale.toFixed(1);
+        }
+
+        function aggiornaContatoriGiacenza(impianto, data) {
+            const dieselAttuale = calcolaGiacenzaAttuale('Diesel', data);
+            const benzinaAttuale = calcolaGiacenzaAttuale('Benzina', data);
+
             if (impianto === 'Casal dei Pazzi') {
-                document.getElementById('stock_diesel_casal').innerText = ultimoDiesel ? `${ultimoDiesel.giacenza_reale} L` : '0 L';
-                document.getElementById('stock_benzina_casal').innerText = ultimaBenzina ? `${ultimaBenzina.giacenza_reale} L` : '0 L';
+                document.getElementById('stock_diesel_casal').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_casal').innerText = `${benzinaAttuale} L`;
             } else if (impianto === 'Annibaliano') {
-                document.getElementById('stock_diesel_ann').innerText = ultimoDiesel ? `${ultimoDiesel.giacenza_reale} L` : '0 L';
-                document.getElementById('stock_benzina_ann').innerText = ultimaBenzina ? `${ultimaBenzina.giacenza_reale} L` : '0 L';
+                document.getElementById('stock_diesel_ann').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_ann').innerText = `${benzinaAttuale} L`;
             } else if (impianto === 'Portuense') {
-                const ultimoDieselPlus = data.find(r => r.carburante === 'Diesel+' && r.operazione.includes("Chiusura"));
-                document.getElementById('stock_diesel_port').innerText = ultimoDiesel ? `${ultimoDiesel.giacenza_reale} L` : '0 L';
-                document.getElementById('stock_dieselplus_port').innerText = ultimoDieselPlus ? `${ultimoDieselPlus.giaczenza_reale || ultimoDieselPlus.giacenza_reale} L` : '0 L';
-                document.getElementById('stock_benzina_port').innerText = ultimaBenzina ? `${ultimaBenzina.giacenza_reale} L` : '0 L';
+                const dieselPlusAttuale = calcolaGiacenzaAttuale('Diesel+', data);
+                document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
+                document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
             }
         }
 
@@ -467,7 +498,7 @@
                 if (!validaContatorePompa("Benzina", "P9", c9)) return;
                 if (!validaContatorePompa("Benzina", "P12", c12)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
+                constonferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
@@ -516,3 +547,5 @@
         // Avvio iniziale automatico sulla Home (Casal dei Pazzi)
         document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
     </script>
+</body>
+</html>

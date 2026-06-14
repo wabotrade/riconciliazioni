@@ -52,9 +52,9 @@
         }
         body.admin-mode-active .admin-query-panel { display: block; }
         
-        /* Mini schede riassuntive KPI */
+        /* Mini schede riassuntive KPI (Adattate a 4 colonne auto-fit) */
         .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
-        @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
         .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .kpi-title { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; font-weight: bold; }
         .kpi-value { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
@@ -220,6 +220,7 @@
             <div class="kpi-report-card"><div class="kpi-title">🚀 Totale Erogato Periodo</div><div class="kpi-value" id="kpi_erogato" style="color:var(--diesel-plus-color);">0 L</div></div>
             <div class="kpi-report-card"><div class="kpi-title">🚚 Totale Carichi Ricevuti</div><div class="kpi-value" id="kpi_carichi" style="color:#28a745;">0 L</div></div>
             <div class="kpi-report-card"><div class="kpi-title">📉 Sfrido Netto Periodo</div><div class="kpi-value" id="kpi_sfrido" style="color:#dc3545;">0 L</div></div>
+            <div class="kpi-report-card"><div class="kpi-title">⚠️ Cali/Eccedenze Viaggio</div><div class="kpi-value" id="kpi_var_viaggio" style="color:#e67e22;">0 L</div></div>
         </div>
 
         <div class="table-responsive" style="margin-top:15px; background:white; padding:10px; border-radius:6px;">
@@ -236,6 +237,7 @@
         <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
     </div>
 
+    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content active">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -269,6 +271,16 @@
                 <div class="inputs-flex">
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_casal"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_casal" step="0.1" required></div>
+                    
+                    <!-- Campo Variazione Viaggio Casal (Dinamico) -->
+                    <div class="form-group" id="container_var_casal" style="display: none;">
+                        <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
+                        <input type="number" id="var_viaggio_casal" step="0.1" placeholder="Es: -15 o +5">
+                    </div>
+                    <div class="form-group" style="justify-content: center; align-items: center;">
+                        <span style="color: #007bff; font-size: 0.85rem; cursor: pointer; text-decoration: underline;" onclick="toggleVariazione('casal')">⚠️ Segnala calo/eccedenza viaggio</span>
+                    </div>
+
                     <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
                 </div>
             </form>
@@ -279,6 +291,7 @@
         </div>
     </div>
 
+    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -335,6 +348,16 @@
                         </select>
                     </div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
+                    
+                    <!-- Campo Variazione Viaggio Portuense (Dinamico) -->
+                    <div class="form-group" id="container_var_port" style="display: none;">
+                        <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
+                        <input type="number" id="var_viaggio_port" step="0.1" placeholder="Es: -15 o +5">
+                    </div>
+                    <div class="form-group" style="justify-content: center; align-items: center;">
+                        <span style="color: #007bff; font-size: 0.85rem; cursor: pointer; text-decoration: underline;" onclick="toggleVariazione('port')">⚠️ Segnala calo/eccedenza viaggio</span>
+                    </div>
+
                     <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
                 </div>
             </form>
@@ -350,6 +373,7 @@
         </div>
     </div>
 
+    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -383,6 +407,16 @@
                 <div class="inputs-flex">
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_ann"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_ann" step="0.1" required></div>
+                    
+                    <!-- Campo Variazione Viaggio Annibaliano (Dinamico) -->
+                    <div class="form-group" id="container_var_ann" style="display: none;">
+                        <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
+                        <input type="number" id="var_viaggio_ann" step="0.1" placeholder="Es: -15 o +5">
+                    </div>
+                    <div class="form-group" style="justify-content: center; align-items: center;">
+                        <span style="color: #007bff; font-size: 0.85rem; cursor: pointer; text-decoration: underline;" onclick="toggleVariazione('ann')">⚠️ Segnala calo/eccedenza viaggio</span>
+                    </div>
+
                     <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
                 </div>
             </form>
@@ -397,6 +431,17 @@
         let ultimiMovimentiCaricati = [];
         let isAdminMode = false; 
         let adminPin = "";       
+
+        // Mostra/Nasconde il campo variazione viaggio a richiesta
+        function toggleVariazione(prefix) {
+            const container = document.getElementById(`container_var_${prefix}`);
+            if (container.style.display === 'none') {
+                container.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+                document.getElementById(`var_viaggio_${prefix}`).value = ''; 
+            }
+        }
 
         function toggleAdminMode() {
             const btn = document.getElementById('adminToggleBtn');
@@ -459,12 +504,14 @@
                     document.getElementById('kpi_erogato').innerText = "0 L";
                     document.getElementById('kpi_carichi').innerText = "0 L";
                     document.getElementById('kpi_sfrido').innerText = "0 L";
+                    document.getElementById('kpi_var_viaggio').innerText = "0 L";
                     return;
                 }
 
                 let totErogato = 0;
                 let totCarichi = 0;
                 let totSfrido = 0;
+                let totVarViaggio = 0;
 
                 data.forEach(row => {
                     const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
@@ -475,8 +522,12 @@
                     totSfrido += parseFloat(row.sfrido || 0);
                     
                     if (row.operazione === "Carico Cisterna") {
-                        const match = row.dettagli.match(/\+\s*([\d.]+)/);
-                        if (match) totCarichi += parseFloat(match[1]);
+                        const matchCarico = row.dettagli.match(/\+\s*([\d.]+)/);
+                        if (matchCarico) totCarichi += parseFloat(matchCarico[1]);
+
+                        // 🔍 Somma ed estrazione analitica dei cali/eccedenze viaggio dal database
+                        const matchVar = row.dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+                        if (matchVar) totVarViaggio += parseFloat(matchVar[1]);
                     }
 
                     let sfridoTesto = '-';
@@ -499,6 +550,7 @@
                 document.getElementById('kpi_erogato').innerText = `${totErogato.toFixed(1)} L`;
                 document.getElementById('kpi_carichi').innerText = `${totCarichi.toFixed(1)} L`;
                 document.getElementById('kpi_sfrido').innerText = `${totSfrido.toFixed(1)} L`;
+                document.getElementById('kpi_var_viaggio').innerText = `${totVarViaggio.toFixed(1)} L`;
             })
             .catch(err => console.error("Errore di rete consultazione:", err));
         }
@@ -805,17 +857,41 @@
         function inviaCarico(event, impianto) {
             event.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            let targetCisterna = ""; let litri = 0;
+            let targetCisterna = ""; let litri = 0; let varViaggio = ""; let prefix = "";
 
-            if(impianto === 'Casal dei Pazzi') { targetCisterna = document.getElementById('select_cisterna_casal').value; litri = document.getElementById('litri_carico_casal').value; }
-            if(impianto === 'Portuense') { targetCisterna = document.getElementById('select_cisterna_port').value; litri = document.getElementById('litri_carico_port').value; }
-            if(impianto === 'Annibaliano') { targetCisterna = document.getElementById('select_cisterna_ann').value; litri = document.getElementById('litri_carico_ann').value; }
+            if(impianto === 'Casal dei Pazzi') { 
+                prefix = 'casal';
+                targetCisterna = document.getElementById('select_cisterna_casal').value; 
+                litri = document.getElementById('litri_carico_casal').value; 
+                varViaggio = document.getElementById('var_viaggio_casal').value;
+            }
+            if(impianto === 'Portuense') { 
+                prefix = 'port';
+                targetCisterna = document.getElementById('select_cisterna_port').value; 
+                litri = document.getElementById('litri_carico_port').value; 
+                varViaggio = document.getElementById('var_viaggio_port').value;
+            }
+            if(impianto === 'Annibaliano') { 
+                prefix = 'ann';
+                targetCisterna = document.getElementById('select_cisterna_ann').value; 
+                litri = document.getElementById('litri_carico_ann').value; 
+                varViaggio = document.getElementById('var_viaggio_ann').value;
+            }
 
-            const conferma = confirm(`❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità: +${litri} Litri\n\nVuoi registrare il carico?`);
+            let msgConferma = `❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità in cisterna: +${litri} Litri`;
+            if (varViaggio) msgConferma += `\nCali/Eccedenze viaggio: ${varViaggio} L`;
+            msgConferma += `\n\nVuoi registrare il carico?`;
+
+            const conferma = confirm(msgConferma);
             if (!conferma) return;
 
-            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: `Autobotte: +${litri} L`, giacenza_reale: 0 }, true);
+            let dettagliTesto = `Autobotte: +${litri} L`;
+            if (varViaggio) dettagliTesto += ` | Cali/Eccedenze viaggio: ${varViaggio} L`;
+
+            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: dettagliTesto, giacenza_reale: 0 }, true);
+            
             event.target.reset();
+            if(prefix) document.getElementById(`container_var_${prefix}`).style.display = 'none';
         }
 
         document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));

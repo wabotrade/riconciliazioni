@@ -41,7 +41,7 @@
             background-color: #28a745;
         }
 
-        /* 📊 PANNELLO QUERY CONSULTAZIONE ADMIN (Nascosto di base) */
+        /* 📊 PANNELLO QUERY CONSULTAZIONE ADMIN */
         .admin-query-panel {
             display: none;
             background-color: #e8f5e9;
@@ -52,10 +52,10 @@
         }
         body.admin-mode-active .admin-query-panel { display: block; }
         
-        /* Mini schede riassuntive KPI dei report */
+        /* Mini schede riassuntive KPI */
         .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
         @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(3, 1fr); } }
-        .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #cmm; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .kpi-title { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; font-weight: bold; }
         .kpi-value { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
 
@@ -186,12 +186,10 @@
 </head>
 <body>
 
-    <!-- Sbarra superiore per switch Admin Mode -->
     <div class="admin-bar">
         <button id="adminToggleBtn" class="btn-admin-toggle" onclick="toggleAdminMode()">🔒 Modalità Operatore</button>
     </div>
 
-    <!-- 📊 NUOVO PANNELLO DI CONSULTAZIONE AVANZATA (Solo Admin) -->
     <div class="admin-query-panel" id="queryPanel">
         <h2 style="margin-top:0; font-size:1.1rem; color:#28a745;">📊 CONSULTAZIONE AVANZATA DATABASE SQL</h2>
         <div class="inputs-flex">
@@ -218,14 +216,12 @@
         </div>
         <button onclick="eseguiConsultazioneAdmin()" class="btn-acquisto" style="margin-top:10px; width:100%; display:block;">🔍 Elabora Report e Filtra SQL</button>
         
-        <!-- KPI Box con i conteggi del periodo filtrato -->
         <div class="kpi-report-grid">
             <div class="kpi-report-card"><div class="kpi-title">🚀 Totale Erogato Periodo</div><div class="kpi-value" id="kpi_erogato" style="color:var(--diesel-plus-color);">0 L</div></div>
             <div class="kpi-report-card"><div class="kpi-title">🚚 Totale Carichi Ricevuti</div><div class="kpi-value" id="kpi_carichi" style="color:#28a745;">0 L</div></div>
             <div class="kpi-report-card"><div class="kpi-title">📉 Sfrido Netto Periodo</div><div class="kpi-value" id="kpi_sfrido" style="color:#dc3545;">0 L</div></div>
         </div>
 
-        <!-- Tabella Risultati Temporanei Query -->
         <div class="table-responsive" style="margin-top:15px; background:white; padding:10px; border-radius:6px;">
             <table style="min-width:100%;">
                 <thead><tr><th>Data/Impianto</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
@@ -240,7 +236,6 @@
         <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
     </div>
 
-    <!-- SEZIONE CASAL DEI PAZZI -->
     <div id="casal" class="tab-content active">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -284,7 +279,6 @@
         </div>
     </div>
 
-    <!-- SEZIONE PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -356,7 +350,6 @@
         </div>
     </div>
 
-    <!-- SEZIONE ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -433,7 +426,6 @@
             }
         }
 
-        // 🔍 FUNZIONE JS PER LEGGERE I FILTRI ED ESEGUIRE IL REPORT
         function eseguiConsultazioneAdmin() {
             if (!isAdminMode) return;
 
@@ -443,7 +435,6 @@
             const dataInizio = document.getElementById('q_inizio').value;
             const dataFine = document.getElementById('q_fine').value;
 
-            // Costruiamo la chiamata GET con i parametri stringa di ricerca
             let url = `/api/admin/consulta?pin=${adminPin}`;
             if(impianto) url += `&impianto=${encodeURIComponent(impianto)}`;
             if(carburante) url += `&carburante=${encodeURIComponent(carburante)}`;
@@ -480,7 +471,6 @@
                     let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
                     if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
 
-                    // Accumulo Statistiche KPI
                     totErogato += parseFloat(row.erogato || 0);
                     totSfrido += parseFloat(row.sfrido || 0);
                     
@@ -506,7 +496,6 @@
                     </tr>`;
                 });
 
-                // Aggiorniamo i Box KPI in tempo reale con i litri calcolati
                 document.getElementById('kpi_erogato').innerText = `${totErogato.toFixed(1)} L`;
                 document.getElementById('kpi_carichi').innerText = `${totCarichi.toFixed(1)} L`;
                 document.getElementById('kpi_sfrido').innerText = `${totSfrido.toFixed(1)} L`;
@@ -623,8 +612,8 @@
                 if (data.success) {
                     alert("Record rimosso correttamente dal Database SQL!");
                     loadDatabaseData(impianto); 
-                    if(document.getElementById('queryPanel').style.display !== 'none') {
-                        eseguiConsultazioneAdmin(); // Ricarica anche il report se aperto
+                    if(isAdminMode) {
+                        eseguiConsultazioneAdmin(); 
                     }
                 } else {
                     alert("Errore: " + data.error);

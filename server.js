@@ -23,7 +23,7 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-// 🔐 PIN DI SICUREZZA PER L'ELIMINAZIONE E CONSULTAZIONE
+// 🔐 PIN DI SICUREZZA
 const ADMIN_PIN = "9999";
 
 function sommaContatori(dettagli) {
@@ -66,7 +66,7 @@ app.post('/api/salva_movimento', async (req, res) => {
             if (lastRows.length > 0) {
                 const ultimaChiusura = lastRows[0];
                 const contatoriAttuali = sommaContatori(dettagli);
-                const contatoriPrecedenti = sommaContCounters = sommaContatori(ultimaChiusura.dettagli);
+                const contatoriPrecedenti = sommaContatori(ultimaChiusura.dettagli); // CORRETTO IL REFUSO QUI
                 erogato = contatoriAttuali - contatoriPrecedenti;
                 if (erogato < 0) erogato = 0;
 
@@ -107,7 +107,7 @@ app.post('/api/salva_movimento', async (req, res) => {
     }
 });
 
-// 3. [GET] Recupera lo storico dati completo di un impianto
+// 3. [GET] Storico ordinario
 app.get('/api/movimenti/:impianto', async (req, res) => {
     try {
         const { impianto } = req.params;
@@ -125,7 +125,7 @@ app.get('/api/movimenti/:impianto', async (req, res) => {
     }
 });
 
-// 🔍 4. [GET] Nuova Rotta per Consultazione Avanzata (Filtri Admin)
+// 🔍 4. [GET] Consultazione Avanzata Admin (SQL Filtri Dinamici)
 app.get('/api/admin/consulta', async (req, res) => {
     try {
         const { pin, impianto, carburante, operazione, data_inizio, data_fine } = req.query;
@@ -153,7 +153,7 @@ app.get('/api/admin/consulta', async (req, res) => {
     }
 });
 
-// 🚨 5. [DELETE] Cancella un record errato previa verifica del PIN
+// 🚨 5. [DELETE] Rimosso record errato
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;

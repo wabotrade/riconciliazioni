@@ -5,12 +5,10 @@ const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // Permette al server di leggere i JSON in arrivo
+app.use(express.json());
 
-// Dice al server che questa cartella contiene file visibili al pubblico
 app.use(express.static(__dirname));
 
-// Quando visiti il dominio principale, ti serve il file index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -25,10 +23,9 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-// 🔐 PIN DI SICUREZZA PER L'ELIMINAZIONE
+// 🔐 PIN DI SICUREZZA PER L'ELIMINAZIONE E CONSULTAZIONE
 const ADMIN_PIN = "9999";
 
-// --- FUNZIONI DI SUPPORTO MATEMATICO ---
 function sommaContatori(dettagli) {
     const regex = /:\s*([\d.]+)/g;
     let match;
@@ -40,7 +37,7 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    const match = dettagli.match(/\+\s*([\d.]+)/); // CORRETTO: rimosso il refuso "detalles ="
+    const match = dettagli.match(/\+\s*([\d.]+)/);
     return match ? parseFloat(match[1]) : 0;
 }
 
@@ -69,7 +66,7 @@ app.post('/api/salva_movimento', async (req, res) => {
             if (lastRows.length > 0) {
                 const ultimaChiusura = lastRows[0];
                 const contatoriAttuali = sommaContatori(dettagli);
-                const contatoriPrecedenti = sommaContatori(ultimaChiusura.dettagli);
+                const contatoriPrecedenti = sommaContCounters = sommaContatori(ultimaChiusura.dettagli);
                 erogato = contatoriAttuali - contatoriPrecedenti;
                 if (erogato < 0) erogato = 0;
 
@@ -110,7 +107,7 @@ app.post('/api/salva_movimento', async (req, res) => {
     }
 });
 
-// 3. [GET] Recupera lo storico dati completo
+// 3. [GET] Recupera lo storico dati completo di un impianto
 app.get('/api/movimenti/:impianto', async (req, res) => {
     try {
         const { impianto } = req.params;
@@ -128,7 +125,35 @@ app.get('/api/movimenti/:impianto', async (req, res) => {
     }
 });
 
-// 4. [DELETE] Cancella un record errato previa verifica del PIN
+// 🔍 4. [GET] Nuova Rotta per Consultazione Avanzata (Filtri Admin)
+app.get('/api/admin/consulta', async (req, res) => {
+    try {
+        const { pin, impianto, carburante, operazione, data_inizio, data_fine } = req.query;
+
+        if (pin !== ADMIN_PIN) {
+            return res.status(403).json({ success: false, error: "Accesso negato. PIN errato." });
+        }
+
+        let query = `SELECT * FROM movimenti WHERE 1=1`;
+        const values = [];
+
+        if (impianto) { query += ` AND impianto = ?`; values.push(impianto); }
+        if (carburante) { query += ` AND carburante = ?`; values.push(carburante); }
+        if (operazione) { query += ` AND operazione = ?`; values.push(operazione); }
+        if (data_inizio) { query += ` AND data_ora >= ?`; values.push(data_inizio + " 00:00:00"); }
+        if (data_fine) { query += ` AND data_ora <= ?`; values.push(data_fine + " 23:59:59"); }
+
+        query += ` ORDER BY data_ora DESC, id DESC`;
+
+        const [rows] = await pool.execute(query, values);
+        res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Errore query consultazione:", error);
+        res.status(500).json({ success: false, error: "Errore interno del server" });
+    }
+});
+
+// 🚨 5. [DELETE] Cancella un record errato previa verifica del PIN
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -147,7 +172,6 @@ app.delete('/api/movimenti/:id', async (req, res) => {
     }
 });
 
-// 5. Avvio del Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server Node.js attivo sulla porta ${PORT}`);

@@ -12,7 +12,6 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Blocco totale dello scorrimento orizzontale sul body */
         html, body { background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; max-width: 100%; overflow-x: hidden; }
         body { font-family: 'Segoe UI', -apple-system, sans-serif; }
         
@@ -42,6 +41,24 @@
             background-color: #28a745;
         }
 
+        /* 📊 PANNELLO QUERY CONSULTAZIONE ADMIN (Nascosto di base) */
+        .admin-query-panel {
+            display: none;
+            background-color: #e8f5e9;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
+        }
+        body.admin-mode-active .admin-query-panel { display: block; }
+        
+        /* Mini schede riassuntive KPI dei report */
+        .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
+        @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(3, 1fr); } }
+        .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #cmm; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .kpi-title { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; font-weight: bold; }
+        .kpi-value { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
+
         /* Navigazione a Schede (Tabs) */
         .tabs-container { display: flex; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
         .tab-btn { flex: 1; padding: 18px 10px; border: none; background: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #6c757d; border-bottom: 4px solid transparent; white-space: nowrap; transition: 0.3s; }
@@ -53,7 +70,6 @@
         .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
         
-        /* Griglia Cisterne Responsiva */
         .cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
         
@@ -65,7 +81,6 @@
         .cisterna-diesel .stock-display { color: var(--diesel-color); } .cisterna-dieselplus .stock-display { color: var(--diesel-plus-color); } .cisterna-benzina .stock-display { color: var(--benzina-color); }
         .sub-stocks { font-size: 0.85rem; color: #495057; background: #e9ecef; padding: 6px; border-radius: 6px; margin-top: 5px; }
 
-        /* Form di Input */
         .card { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 15px; }
         .card h2 { margin-top: 0; font-size: 1.1rem; padding-bottom: 8px; border-bottom: 2px solid var(--background-color); text-transform: uppercase; }
         .section-title-diesel { color: var(--diesel-color); border-left: 4px solid var(--diesel-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
@@ -86,7 +101,6 @@
         .btn-ann { background-color: var(--ann-color); }
         .btn-acquisto { background-color: #28a745; }
 
-        /* Contenitori Tabelle */
         .tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
         @media (min-width: 1024px) { .tables-flex-container { flex-direction: row; } }
         
@@ -94,7 +108,7 @@
         .table-responsive { width: 100%; }
         
         table { width: 100%; border-collapse: collapse; }
-        @media (min-width: 768px) { table { min-width: 600px; } } /* Forza i 600px solo su desktop */
+        @media (min-width: 768px) { table { min-width: 600px; } }
         
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
@@ -105,17 +119,10 @@
         .btn-elimina { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0; }
         .btn-elimina:hover { background: #bd2130; }
 
-        /* =======================================================
-           ⚡ RIVOLUZIONE MOBILE SMARTPHONE (Sotto i 768px di larghezza)
-           ======================================================= */
+        /* Mobile Layout */
         @media (max-width: 767px) {
-            /* Trasforma la tabella orizzontale in elementi a blocchi verticali */
             table, thead, tbody, th, td, tr { display: block; width: 100%; }
-            
-            /* Nasconde l'intestazione classica che occuperebbe spazio inutilmente */
             table thead { display: none; }
-            
-            /* Ogni riga del database diventa un balconcino/card indipendente */
             table tbody tr {
                 background: #fff;
                 border: 1px solid var(--border-color);
@@ -124,8 +131,6 @@
                 padding: 10px 12px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             }
-            
-            /* Imposta le celle affiancate (Titolo a sinistra, Valore a destra) */
             td {
                 display: flex;
                 justify-content: space-between;
@@ -137,17 +142,18 @@
                 font-size: 0.9rem;
             }
             
-            /* Iniettiamo le etichette di testo dinamicamente a sinistra tramite CSS */
             #tbl_diesel_casal td:nth-of-type(1)::before,
             #tbl_benzina_casal td:nth-of-type(1)::before,
             #tbl_diesel_ann td:nth-of-type(1)::before,
             #tbl_benzina_ann td:nth-of-type(1)::before,
-            #tbl_generale_port td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
+            #tbl_generale_port td:nth-of-type(1)::before,
+            #tbl_risultati_query td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
             
             #tbl_diesel_casal td:nth-of-type(2)::before,
             #tbl_benzina_casal td:nth-of-type(2)::before,
             #tbl_diesel_ann td:nth-of-type(2)::before,
-            #tbl_benzina_ann td:nth-of-type(2)::before { content: "⚙️ Tipo Record"; font-weight: bold; color: #6c757d; }
+            #tbl_benzina_ann td:nth-of-type(2)::before,
+            #tbl_risultati_query td:nth-of-type(2)::before { content: "⚙️ Tipo Record"; font-weight: bold; color: #6c757d; }
             
             #tbl_generale_port td:nth-of-type(2)::before { content: "⛽ Carburante"; font-weight: bold; color: #6c757d; }
 
@@ -155,37 +161,77 @@
             #tbl_benzina_casal td:nth-of-type(3)::before,
             #tbl_diesel_ann td:nth-of-type(3)::before,
             #tbl_benzina_ann td:nth-of-type(3)::before,
-            #tbl_generale_port td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
+            #tbl_generale_port td:nth-of-type(3)::before,
+            #tbl_risultati_query td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
 
             #tbl_diesel_casal td:nth-of-type(4)::before,
             #tbl_benzina_casal td:nth-of-type(4)::before,
             #tbl_diesel_ann td:nth-of-type(4)::before,
             #tbl_benzina_ann td:nth-of-type(4)::before,
-            #tbl_generale_port td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
+            #tbl_generale_port td:nth-of-type(4)::before,
+            #tbl_risultati_query td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
 
-            /* Gestione della cella e del Tasto Elimina su Mobile */
             td:nth-of-type(5) { 
-                display: none; /* Nasconde la sezione azioni di default per risparmiare spazio */
+                display: none; 
                 border-bottom: none !important; 
                 padding-top: 12px !important; 
                 justify-content: center; 
             }
-            
-            /* Mostra la riga delle azioni solo se l'Amministratore ha aperto il Lucchetto con il PIN */
-            body.admin-mode-active td:nth-of-type(5) { 
-                display: flex; 
-            }
+            body.admin-mode-active td:nth-of-type(5) { display: flex; }
         }
 
-        /* Nasconde il bottone elimina su Desktop di base (verrà sovrascritto dalla classe admin) */
         .btn-elimina { display: none; }
         body.admin-mode-active .btn-elimina { display: inline-block; }
     </style>
 </head>
 <body>
 
+    <!-- Sbarra superiore per switch Admin Mode -->
     <div class="admin-bar">
         <button id="adminToggleBtn" class="btn-admin-toggle" onclick="toggleAdminMode()">🔒 Modalità Operatore</button>
+    </div>
+
+    <!-- 📊 NUOVO PANNELLO DI CONSULTAZIONE AVANZATA (Solo Admin) -->
+    <div class="admin-query-panel" id="queryPanel">
+        <h2 style="margin-top:0; font-size:1.1rem; color:#28a745;">📊 CONSULTAZIONE AVANZATA DATABASE SQL</h2>
+        <div class="inputs-flex">
+            <div class="form-group">
+                <label>Impianto</label>
+                <select id="q_impianto"><option value="">Tutti gli impianti</option><option value="Casal dei Pazzi">Casal dei Pazzi</option><option value="Portuense">Portuense</option><option value="Annibaliano">Annibaliano</option></select>
+            </div>
+            <div class="form-group">
+                <label>Carburante</label>
+                <select id="q_carburante"><option value="">Tutti</option><option value="Diesel">Diesel</option><option value="Diesel+">Diesel+</option><option value="Benzina">Benzina</option></select>
+            </div>
+            <div class="form-group">
+                <label>Operazione</label>
+                <select id="q_operazione"><option value="">Tutte</option><option value="Chiusura Contatori">Chiusura Contatori</option><option value="Carico Cisterna">Carico Cisterna</option></select>
+            </div>
+            <div class="form-group">
+                <label>Dal (Giorno)</label>
+                <input type="date" id="q_inizio">
+            </div>
+            <div class="form-group">
+                <label>Al (Giorno)</label>
+                <input type="date" id="q_fine">
+            </div>
+        </div>
+        <button onclick="eseguiConsultazioneAdmin()" class="btn-acquisto" style="margin-top:10px; width:100%; display:block;">🔍 Elabora Report e Filtra SQL</button>
+        
+        <!-- KPI Box con i conteggi del periodo filtrato -->
+        <div class="kpi-report-grid">
+            <div class="kpi-report-card"><div class="kpi-title">🚀 Totale Erogato Periodo</div><div class="kpi-value" id="kpi_erogato" style="color:var(--diesel-plus-color);">0 L</div></div>
+            <div class="kpi-report-card"><div class="kpi-title">🚚 Totale Carichi Ricevuti</div><div class="kpi-value" id="kpi_carichi" style="color:#28a745;">0 L</div></div>
+            <div class="kpi-report-card"><div class="kpi-title">📉 Sfrido Netto Periodo</div><div class="kpi-value" id="kpi_sfrido" style="color:#dc3545;">0 L</div></div>
+        </div>
+
+        <!-- Tabella Risultati Temporanei Query -->
+        <div class="table-responsive" style="margin-top:15px; background:white; padding:10px; border-radius:6px;">
+            <table style="min-width:100%;">
+                <thead><tr><th>Data/Impianto</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                <tbody id="tbl_risultati_query"><tr><td colspan="5" style="text-align:center; color:#6c757d;">Seleziona i filtri e clicca su Elabora Report.</td></tr></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="tabs-container">
@@ -194,6 +240,7 @@
         <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
     </div>
 
+    <!-- SEZIONE CASAL DEI PAZZI -->
     <div id="casal" class="tab-content active">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -237,6 +284,7 @@
         </div>
     </div>
 
+    <!-- SEZIONE PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -308,6 +356,7 @@
         </div>
     </div>
 
+    <!-- SEZIONE ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -356,7 +405,6 @@
         let isAdminMode = false; 
         let adminPin = "";       
 
-        // Sblocco della plancia con il lucchetto (memorizza il PIN temporaneamente)
         function toggleAdminMode() {
             const btn = document.getElementById('adminToggleBtn');
             
@@ -366,9 +414,10 @@
                 document.body.classList.remove('admin-mode-active');
                 btn.classList.remove('active');
                 btn.innerText = "🔒 Modalità Operatore";
+                document.getElementById('tbl_risultati_query').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#6c757d;">Seleziona i filtri e clicca su Elabora Report.</td></tr>';
                 alert("Modalità Amministratore chiusa.");
             } else {
-                const pin = prompt("🔐 ACCESSO RISERVATO\n\nInserisci il PIN amministrativo per sbloccare le funzioni di eliminazione:");
+                const pin = prompt("🔐 ACCESSO RISERVATO\n\nInserisci il PIN amministrativo per sbloccare le funzioni di eliminazione e consultazione:");
                 if (pin === null) return;
 
                 if (pin === "9999") {
@@ -377,11 +426,92 @@
                     document.body.classList.add('admin-mode-active');
                     btn.classList.add('active');
                     btn.innerText = "🔓 Modalità Admin Attiva";
-                    alert("🔓 Accesso autorizzato. I tasti 'Elimina' sono ora disponibili nelle tabelle storiche.");
+                    alert("🔓 Accesso autorizzato. Pannello consultazione sbloccato in alto.");
                 } else {
                     alert("🚨 PIN inserito errato! Autorizzazione negata.");
                 }
             }
+        }
+
+        // 🔍 FUNZIONE JS PER LEGGERE I FILTRI ED ESEGUIRE IL REPORT
+        function eseguiConsultazioneAdmin() {
+            if (!isAdminMode) return;
+
+            const impianto = document.getElementById('q_impianto').value;
+            const carburante = document.getElementById('q_carburante').value;
+            const operazione = document.getElementById('q_operazione').value;
+            const dataInizio = document.getElementById('q_inizio').value;
+            const dataFine = document.getElementById('q_fine').value;
+
+            // Costruiamo la chiamata GET con i parametri stringa di ricerca
+            let url = `/api/admin/consulta?pin=${adminPin}`;
+            if(impianto) url += `&impianto=${encodeURIComponent(impianto)}`;
+            if(carburante) url += `&carburante=${encodeURIComponent(carburante)}`;
+            if(operazione) url += `&operazione=${encodeURIComponent(operazione)}`;
+            if(dataInizio) url += `&data_inizio=${dataInizio}`;
+            if(dataFine) url += `&data_fine=${dataFine}`;
+
+            fetch(url)
+            .then(res => res.json())
+            .then(response => {
+                if (!response.success) {
+                    alert("Errore consultazione: " + response.error);
+                    return;
+                }
+
+                const data = response.data;
+                const tbody = document.getElementById('tbl_risultati_query');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#dc3545;">Nessun record corrisponde ai filtri selezionati.</td></tr>';
+                    document.getElementById('kpi_erogato').innerText = "0 L";
+                    document.getElementById('kpi_carichi').innerText = "0 L";
+                    document.getElementById('kpi_sfrido').innerText = "0 L";
+                    return;
+                }
+
+                let totErogato = 0;
+                let totCarichi = 0;
+                let totSfrido = 0;
+
+                data.forEach(row => {
+                    const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                    let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
+                    if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
+
+                    // Accumulo Statistiche KPI
+                    totErogato += parseFloat(row.erogato || 0);
+                    totSfrido += parseFloat(row.sfrido || 0);
+                    
+                    if (row.operazione === "Carico Cisterna") {
+                        const match = row.dettagli.match(/\+\s*([\d.]+)/);
+                        if (match) totCarichi += parseFloat(match[1]);
+                    }
+
+                    let sfridoTesto = '-';
+                    if (row.sfrido !== null) {
+                        const val = parseFloat(row.sfrido).toFixed(1);
+                        sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                    }
+
+                    const bottoneElimina = `<button class="btn-elimina" style="display:inline-block;" onclick="eliminaRecord(${row.id}, '${row.impianto}')">🗑️ Elimina</button>`;
+
+                    tbody.innerHTML += `<tr>
+                        <td>${dataFormattata}<br><small style="color:#6c757d; font-weight:bold;">${row.impianto}</small></td>
+                        <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
+                        <td>${row.dettagli}</td>
+                        <td>${sfridoTesto}</td>
+                        <td>${bottoneElimina}</td>
+                    </tr>`;
+                });
+
+                // Aggiorniamo i Box KPI in tempo reale con i litri calcolati
+                document.getElementById('kpi_erogato').innerText = `${totErogato.toFixed(1)} L`;
+                document.getElementById('kpi_carichi').innerText = `${totCarichi.toFixed(1)} L`;
+                document.getElementById('kpi_sfrido').innerText = `${totSfrido.toFixed(1)} L`;
+            })
+            .catch(err => console.error("Errore di rete consultazione:", err));
         }
 
         document.querySelectorAll('.tab-btn').forEach(button => {
@@ -493,6 +623,9 @@
                 if (data.success) {
                     alert("Record rimosso correttamente dal Database SQL!");
                     loadDatabaseData(impianto); 
+                    if(document.getElementById('queryPanel').style.display !== 'none') {
+                        eseguiConsultazioneAdmin(); // Ricarica anche il report se aperto
+                    }
                 } else {
                     alert("Errore: " + data.error);
                 }

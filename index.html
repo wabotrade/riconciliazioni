@@ -11,9 +11,12 @@
             --background-color: #f4f6f9; --card-color: #ffffff; --text-color: #212529; --border-color: #dee2e6; 
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', -apple-system, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; }
         
-        /* 🛠️ Barra Superiore per attivazione Modalità Admin */
+        /* Blocco totale dello scorrimento orizzontale sul body */
+        html, body { background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; max-width: 100%; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', -apple-system, sans-serif; }
+        
+        /* Sbarra Superiore Amministratore */
         .admin-bar {
             background-color: #e9ecef;
             padding: 10px 15px;
@@ -49,15 +52,20 @@
 
         .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
+        
+        /* Griglia Cisterne Responsiva */
         .cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
+        
         .cisterna-card { background: var(--card-color); border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #ccc; }
         .cisterna-card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
         .cisterna-diesel { border-top-color: var(--diesel-color); } .cisterna-dieselplus { border-top-color: var(--diesel-plus-color); } .cisterna-benzina { border-top-color: var(--benzina-color); }
+        
         .stock-display { font-size: 2.2rem; font-weight: bold; margin: 5px 0; }
         .cisterna-diesel .stock-display { color: var(--diesel-color); } .cisterna-dieselplus .stock-display { color: var(--diesel-plus-color); } .cisterna-benzina .stock-display { color: var(--benzina-color); }
         .sub-stocks { font-size: 0.85rem; color: #495057; background: #e9ecef; padding: 6px; border-radius: 6px; margin-top: 5px; }
 
+        /* Form di Input */
         .card { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 15px; }
         .card h2 { margin-top: 0; font-size: 1.1rem; padding-bottom: 8px; border-bottom: 2px solid var(--background-color); text-transform: uppercase; }
         .section-title-diesel { color: var(--diesel-color); border-left: 4px solid var(--diesel-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
@@ -66,6 +74,7 @@
         
         .inputs-flex { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
         @media (min-width: 768px) { .inputs-flex { flex-direction: row; flex-wrap: wrap; gap: 15px; } .form-group { flex: 1; min-width: 180px; } }
+        
         .form-group { width: 100%; display: flex; flex-direction: column; }
         .form-group label { font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #495057; }
         .form-group input, .form-group select { padding: 12px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%; }
@@ -77,19 +86,99 @@
         .btn-ann { background-color: var(--ann-color); }
         .btn-acquisto { background-color: #28a745; }
 
+        /* Contenitori Tabelle */
         .tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
         @media (min-width: 1024px) { .tables-flex-container { flex-direction: row; } }
+        
         .table-section { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); flex: 1; min-width: 0; }
-        .table-responsive { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .table-responsive { width: 100%; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        @media (min-width: 768px) { table { min-width: 600px; } } /* Forza i 600px solo su desktop */
+        
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
         th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
+        
         .badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
         .badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
         
-        /* 🔒 NASCONDITE DI DEFAULT: Le azioni di eliminazione riappaiono solo in modalità Admin */
-        .btn-elimina { display: none; background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; width: auto; margin: 0; }
+        .btn-elimina { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0; }
         .btn-elimina:hover { background: #bd2130; }
+
+        /* =======================================================
+           ⚡ RIVOLUZIONE MOBILE SMARTPHONE (Sotto i 768px di larghezza)
+           ======================================================= */
+        @media (max-width: 767px) {
+            /* Trasforma la tabella orizzontale in elementi a blocchi verticali */
+            table, thead, tbody, th, td, tr { display: block; width: 100%; }
+            
+            /* Nasconde l'intestazione classica che occuperebbe spazio inutilmente */
+            table thead { display: none; }
+            
+            /* Ogni riga del database diventa un balconcino/card indipendente */
+            table tbody tr {
+                background: #fff;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                margin-bottom: 12px;
+                padding: 10px 12px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            }
+            
+            /* Imposta le celle affiancate (Titolo a sinistra, Valore a destra) */
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0 !important;
+                border: none !important;
+                border-bottom: 1px dashed #eee !important;
+                text-align: right;
+                font-size: 0.9rem;
+            }
+            
+            /* Iniettiamo le etichette di testo dinamicamente a sinistra tramite CSS */
+            #tbl_diesel_casal td:nth-of-type(1)::before,
+            #tbl_benzina_casal td:nth-of-type(1)::before,
+            #tbl_diesel_ann td:nth-of-type(1)::before,
+            #tbl_benzina_ann td:nth-of-type(1)::before,
+            #tbl_generale_port td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
+            
+            #tbl_diesel_casal td:nth-of-type(2)::before,
+            #tbl_benzina_casal td:nth-of-type(2)::before,
+            #tbl_diesel_ann td:nth-of-type(2)::before,
+            #tbl_benzina_ann td:nth-of-type(2)::before { content: "⚙️ Tipo Record"; font-weight: bold; color: #6c757d; }
+            
+            #tbl_generale_port td:nth-of-type(2)::before { content: "⛽ Carburante"; font-weight: bold; color: #6c757d; }
+
+            #tbl_diesel_casal td:nth-of-type(3)::before,
+            #tbl_benzina_casal td:nth-of-type(3)::before,
+            #tbl_diesel_ann td:nth-of-type(3)::before,
+            #tbl_benzina_ann td:nth-of-type(3)::before,
+            #tbl_generale_port td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
+
+            #tbl_diesel_casal td:nth-of-type(4)::before,
+            #tbl_benzina_casal td:nth-of-type(4)::before,
+            #tbl_diesel_ann td:nth-of-type(4)::before,
+            #tbl_benzina_ann td:nth-of-type(4)::before,
+            #tbl_generale_port td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
+
+            /* Gestione della cella e del Tasto Elimina su Mobile */
+            td:nth-of-type(5) { 
+                display: none; /* Nasconde la sezione azioni di default per risparmiare spazio */
+                border-bottom: none !important; 
+                padding-top: 12px !important; 
+                justify-content: center; 
+            }
+            
+            /* Mostra la riga delle azioni solo se l'Amministratore ha aperto il Lucchetto con il PIN */
+            body.admin-mode-active td:nth-of-type(5) { 
+                display: flex; 
+            }
+        }
+
+        /* Nasconde il bottone elimina su Desktop di base (verrà sovrascritto dalla classe admin) */
+        .btn-elimina { display: none; }
         body.admin-mode-active .btn-elimina { display: inline-block; }
     </style>
 </head>
@@ -264,10 +353,10 @@
 
     <script>
         let ultimiMovimentiCaricati = [];
-        let isAdminMode = false; // Stato globale admin
-        let adminPin = "";       // Memorizzazione sicura del PIN inserito per le API
+        let isAdminMode = false; 
+        let adminPin = "";       
 
-        // 🔓 Funzione Sblocco Plancia con il Lucchetto
+        // Sblocco della plancia con il lucchetto (memorizza il PIN temporaneamente)
         function toggleAdminMode() {
             const btn = document.getElementById('adminToggleBtn');
             

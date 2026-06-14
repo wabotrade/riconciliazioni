@@ -52,7 +52,7 @@
         }
         body.admin-mode-active .admin-query-panel { display: block; }
         
-        /* Mini schede riassuntive KPI */
+        /* Mini schede riassuntive KPI (Adattate a 4 colonne auto-fit) */
         .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
         @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
         .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -184,7 +184,8 @@
         body.admin-mode-active .btn-elimina { display: inline-block; }
     </style>
 </head>
-<body>
+<!-- 🔒 MODIFICA: Il body parte nascosto di base via CSS per evitare flash visivi -->
+<body style="display: none;">
 
     <div class="admin-bar">
         <button id="adminToggleBtn" class="btn-admin-toggle" onclick="toggleAdminMode()">🔒 Modalità Operatore</button>
@@ -232,12 +233,13 @@
     </div>
 
     <div class="tabs-container">
-        <button class="tab-btn active" data-target="casal">🟣 Casal dei Pazzi</button>
+        <button class="tab-btn" data-target="casal">🟣 Casal dei Pazzi</button>
         <button class="tab-btn" data-target="portuense">🟠 Portuense</button>
         <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
     </div>
 
-    <div id="casal" class="tab-content active">
+    <!-- CASAL DEI PAZZI -->
+    <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
             <p>Database SQL Sincronizzato</p>
@@ -271,6 +273,7 @@
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_casal"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_casal" step="0.1" required></div>
                     
+                    <!-- Campo Variazione Viaggio Casal (Dinamico) -->
                     <div class="form-group" id="container_var_casal" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_casal" step="0.1" placeholder="Es: -15 o +5">
@@ -289,6 +292,7 @@
         </div>
     </div>
 
+    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -329,7 +333,7 @@
                 </div>
                 <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 4</label><input type="number" id="stock_B4_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 5</label><input type="number" id="stock_B5_real_port" step="0.1" required></div></div>
 
-                <button type="submit" class="btn-port">📊 Invia Chiusura Completa (SQL)</button>
+                <button type="submit" class="btn-port">📊 Invia Chiusura Complete (SQL)</button>
             </form>
         </div>
         <div class="card">
@@ -346,6 +350,7 @@
                     </div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
                     
+                    <!-- Campo Variazione Viaggio Portuense (Dinamico) -->
                     <div class="form-group" id="container_var_port" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_port" step="0.1" placeholder="Es: -15 o +5">
@@ -369,6 +374,7 @@
         </div>
     </div>
 
+    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -403,6 +409,7 @@
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_ann"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_ann" step="0.1" required></div>
                     
+                    <!-- Campo Variazione Viaggio Annibaliano (Dinamico) -->
                     <div class="form-group" id="container_var_ann" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_ann" step="0.1" placeholder="Es: -15 o +5">
@@ -729,6 +736,7 @@
             });
         }
 
+        // Matematicamente allineato con le eccedenze e i cali reali di scarico
         function calcolaGiacenzaAttuale(carburante, data) {
             const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
             if (idxChiusura === -1) return 0;
@@ -888,7 +896,63 @@
             if(prefix) document.getElementById(`container_var_${prefix}`).style.display = 'none';
         }
 
-        document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
+        // 🔒 LOGICA DI ACCESSO CON PIN ALL'APERTURA DELLA PAGINA
+        document.addEventListener("DOMContentLoaded", () => {
+            let authorized = false;
+            let targetTab = "";
+            let nomeImpianto = "";
+            let enteredPin = "";
+
+            while (!authorized) {
+                enteredPin = prompt("🔐 ACCESSO PROTETTO - HUB GESTIONE CARBURANTI\n\nInserisci il PIN del tuo impianto per sbloccare l'applicazione:");
+                if (enteredPin === null) {
+                    alert("Accesso negato. Ricarica la pagina per immettere il codice.");
+                    return;
+                }
+
+                if (enteredPin === "1515") {
+                    targetTab = "annibaliano"; nomeImpianto = "Annibaliano"; authorized = true;
+                } else if (enteredPin === "7177") {
+                    targetTab = "portuense"; nomeImpianto = "Portuense"; authorized = true;
+                } else if (enteredPin === "9797") {
+                    targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
+                } else if (enteredPin === "9999") { // Master Admin generale per vederli tutti
+                    targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
+                } else {
+                    alert("🚨 PIN inserito errato! Riprova.");
+                }
+            }
+
+            // Sblocca la visualizzazione della pagina
+            document.body.style.display = 'block';
+
+            // Se l'accesso NON è l'amministratore supremo (9999), nascondiamo le altre schede
+            if (enteredPin !== "9999") {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    if (btn.getAttribute('data-target') !== targetTab) {
+                        btn.style.display = 'none';
+                    }
+                });
+                // Blocca anche la selezione del report admin solo sulla propria sede
+                const qImpiantoSelect = document.getElementById('q_impianto');
+                if (qImpiantoSelect) {
+                    qImpiantoSelect.value = nomeImpianto;
+                    qImpiantoSelect.disabled = true;
+                }
+            }
+
+            // Attiva graficamente la scheda corretta
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const activeBtn = document.querySelector(`.tab-btn[data-target="${targetTab}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            const activeContent = document.getElementById(targetTab);
+            if (activeContent) activeContent.classList.add('active');
+
+            // Avvia il caricamento iniziale dei dati SQL
+            loadDatabaseData(nomeImpianto);
+        });
     </script>
 </body>
 </html>

@@ -23,7 +23,7 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-// 🔐 PIN DI SICUREZZA
+// 🔐 PIN DI SICUREZZA MASTER
 const ADMIN_PIN = "9999";
 
 function sommaContatori(dettagli) {
@@ -37,7 +37,7 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L o fallback +4000 L)
+    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L o il vecchio +4000 L)
     const matchCarico = dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || dettagli.match(/\+\s*([\d.]+)/);
     let totaleNetto = matchCarico ? parseFloat(matchCarico[1]) : 0;
 
@@ -52,8 +52,7 @@ function estraiLitriCarico(dettagli) {
 // 2. [POST] Salva movimento e calcola lo Sfrido
 app.post('/api/salva_movimento', async (req, res) => {
     try {
-        const { impianto, data_ora, operazione, carburante, dettagli, giacancy_reale } = req.body;
-        const giacenza_reale = req.body.giacenza_reale !== undefined ? req.body.giacenza_reale : giacancy_reale;
+        const { impianto, data_ora, operazione, carburante, dettagli, giacenza_reale } = req.body;
 
         if (!impianto || !operazione || !carburante) {
             return res.status(400).json({ success: false, error: "Dati incompleti" });
@@ -134,7 +133,7 @@ app.get('/api/movimenti/:impianto', async (req, res) => {
     }
 });
 
-// 4. [GET] Consultazione Avanzata Admin
+// 🔍 4. [GET] Consultazione Avanzata Admin (SQL Filtri Dinamici)
 app.get('/api/admin/consulta', async (req, res) => {
     try {
         const { pin, impianto, carburante, operazione, data_inizio, data_fine } = req.query;
@@ -162,7 +161,7 @@ app.get('/api/admin/consulta', async (req, res) => {
     }
 });
 
-// 5. [DELETE] Rimosso record errato
+// 🚨 5. [DELETE] Rimosso record errato
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;

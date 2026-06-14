@@ -13,6 +13,32 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', -apple-system, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; }
         
+        /* 🛠️ Barra Superiore per attivazione Modalità Admin */
+        .admin-bar {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .btn-admin-toggle {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            width: auto;
+            margin: 0;
+        }
+        .btn-admin-toggle.active {
+            background-color: #28a745;
+        }
+
         /* Navigazione a Schede (Tabs) */
         .tabs-container { display: flex; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
         .tab-btn { flex: 1; padding: 18px 10px; border: none; background: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #6c757d; border-bottom: 4px solid transparent; white-space: nowrap; transition: 0.3s; }
@@ -60,11 +86,18 @@
         th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
         .badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
         .badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
-        .btn-elimina { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+        
+        /* 🔒 NASCONDITE DI DEFAULT: Le azioni di eliminazione riappaiono solo in modalità Admin */
+        .btn-elimina { display: none; background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; width: auto; margin: 0; }
         .btn-elimina:hover { background: #bd2130; }
+        body.admin-mode-active .btn-elimina { display: inline-block; }
     </style>
 </head>
 <body>
+
+    <div class="admin-bar">
+        <button id="adminToggleBtn" class="btn-admin-toggle" onclick="toggleAdminMode()">🔒 Modalità Operatore</button>
+    </div>
 
     <div class="tabs-container">
         <button class="tab-btn active" data-target="casal">🟣 Casal dei Pazzi</button>
@@ -231,6 +264,36 @@
 
     <script>
         let ultimiMovimentiCaricati = [];
+        let isAdminMode = false; // Stato globale admin
+        let adminPin = "";       // Memorizzazione sicura del PIN inserito per le API
+
+        // 🔓 Funzione Sblocco Plancia con il Lucchetto
+        function toggleAdminMode() {
+            const btn = document.getElementById('adminToggleBtn');
+            
+            if (isAdminMode) {
+                isAdminMode = false;
+                adminPin = "";
+                document.body.classList.remove('admin-mode-active');
+                btn.classList.remove('active');
+                btn.innerText = "🔒 Modalità Operatore";
+                alert("Modalità Amministratore chiusa.");
+            } else {
+                const pin = prompt("🔐 ACCESSO RISERVATO\n\nInserisci il PIN amministrativo per sbloccare le funzioni di eliminazione:");
+                if (pin === null) return;
+
+                if (pin === "9999") {
+                    isAdminMode = true;
+                    adminPin = pin;
+                    document.body.classList.add('admin-mode-active');
+                    btn.classList.add('active');
+                    btn.innerText = "🔓 Modalità Admin Attiva";
+                    alert("🔓 Accesso autorizzato. I tasti 'Elimina' sono ora disponibili nelle tabelle storiche.");
+                } else {
+                    alert("🚨 PIN inserito errato! Autorizzazione negata.");
+                }
+            }
+        }
 
         document.querySelectorAll('.tab-btn').forEach(button => {
             button.addEventListener('click', () => {
@@ -323,13 +386,18 @@
         }
 
         function eliminaRecord(id, impianto) {
-            const pin = prompt("🔐 FUNZIONE PROTETTA\n\nInserisci il PIN di sicurezza per eliminare questo record di movimento:");
-            if (pin === null) return; 
+            if (!isAdminMode) {
+                alert("Azione non autorizzata. Sblocca prima la Modalità Admin con il lucchetto in alto.");
+                return;
+            }
+
+            const conferma = confirm("🗑️ CONFERMA RIMOZIONE\n\nVuoi eliminare definitivamente questo movimento? L'operazione ricalcolerà immediatamente giacenze e sfridi.");
+            if (!conferma) return;
 
             fetch(`/api/movimenti/${id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pin: pin })
+                body: JSON.stringify({ pin: adminPin })
             })
             .then(res => res.json())
             .then(data => {
@@ -364,7 +432,7 @@
                     sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
                 }
 
-                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ ... Elimina</button>`;
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
 
                 const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
                 

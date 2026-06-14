@@ -5,10 +5,12 @@ const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Permette al server di leggere i JSON in arrivo
 
+// Dice al server che questa cartella contiene file visibili al pubblico
 app.use(express.static(__dirname));
 
+// Quando visiti il dominio principale, ti serve il file index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -23,9 +25,10 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-// 🔐 PIN DI SICUREZZA PER L'ELIMINAZIONE (Puoi cambiarlo con quello che preferisci)
+// 🔐 PIN DI SICUREZZA PER L'ELIMINAZIONE
 const ADMIN_PIN = "9999";
 
+// --- FUNZIONI DI SUPPORTO MATEMATICO ---
 function sommaContatori(dettagli) {
     const regex = /:\s*([\d.]+)/g;
     let match;
@@ -37,7 +40,7 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    const match = detalles = dettagli.match(/\+\s*([\d.]+)/);
+    const match = dettagli.match(/\+\s*([\d.]+)/); // CORRETTO: rimosso il refuso "detalles ="
     return match ? parseFloat(match[1]) : 0;
 }
 
@@ -125,7 +128,7 @@ app.get('/api/movimenti/:impianto', async (req, res) => {
     }
 });
 
-// 🚨 4. [DELETE] Cancella un record errato previa verifica del PIN
+// 4. [DELETE] Cancella un record errato previa verifica del PIN
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -144,6 +147,7 @@ app.delete('/api/movimenti/:id', async (req, res) => {
     }
 });
 
+// 5. Avvio del Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server Node.js attivo sulla porta ${PORT}`);

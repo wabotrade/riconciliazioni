@@ -23,6 +23,7 @@
 
         .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
+        .cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
         .cisterna-card { background: var(--card-color); border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #ccc; }
         .cisterna-card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
@@ -59,6 +60,8 @@
         th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
         .badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
         .badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
+        .btn-elimina { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+        .btn-elimina:hover { background: #bd2130; }
     </style>
 </head>
 <body>
@@ -107,8 +110,8 @@
             </form>
         </div>
         <div class="tables-flex-container">
-            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th></tr></thead><tbody id="tbl_diesel_casal"><tr><td colspan="4" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th></tr></thead><tbody id="tbl_benzina_casal"><tr><td colspan="4" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
         </div>
     </div>
 
@@ -176,8 +179,8 @@
             <h2>📋 Movimenti Database - Portuense</h2>
             <div class="table-responsive">
                 <table>
-                    <thead><tr><th>Data</th><th>Carburante</th><th>Dettagli</th><th>Sfrido</th></tr></thead>
-                    <tbody id="tbl_generale_port"><tr><td colspan="4" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
+                    <thead><tr><th>Data</th><th>Carburante</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                    <tbody id="tbl_generale_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -221,20 +224,14 @@
             </form>
         </div>
         <div class="tables-flex-container">
-            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th></tr></thead><tbody id="tbl_diesel_ann"><tr><td colspan="4" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th></tr></thead><tbody id="tbl_benzina_ann"><tr><td colspan="4" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 0. VARIABILI GLOBALI DI CONTROLLO
-        // ==========================================
-        let ultimiMovimentiCaricati = []; // Memorizza lo storico per fare i controlli matematici sui contatori
+        let ultimiMovimentiCaricati = [];
 
-        // ==========================================
-        // 1. LOGICA DI NAVIGAZIONE A SCHEDE (TABS)
-        // ==========================================
         document.querySelectorAll('.tab-btn').forEach(button => {
             button.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -249,9 +246,6 @@
             });
         });
 
-        // ==========================================
-        // 2. FUNZIONE PER SALVARE I DATI IN MYSQL (POST)
-        // ==========================================
         function inviaAlDatabase(payload, mostraAlert = true) {
             fetch('/api/salva_movimento', {
                 method: 'POST',
@@ -275,9 +269,6 @@
             });
         }
 
-        // ==========================================
-        // 3. FUNZIONE PER CARICARE I DATI DA MYSQL (GET)
-        // ==========================================
         function loadDatabaseData(impianto) {
             fetch(`/api/movimenti/${encodeURIComponent(impianto)}`)
             .then(res => res.json())
@@ -287,28 +278,22 @@
                     return; 
                 }
                 
-                // Salviamo i dati nello storico globale per usarli nelle validazioni dei contatori
                 ultimiMovimentiCaricati = response.data; 
-                
                 const data = response.data;
                 aggiornaContatoriGiacenza(impianto, data);
 
                 if (impianto === 'Casal dei Pazzi') {
-                    riempiTabellaSdoppiata(data, 'tbl_diesel_casal', 'tbl_benzina_casal');
+                    riempiTabellaSdoppiata(data, 'tbl_diesel_casal', 'tbl_benzina_casal', impianto);
                 } else if (impianto === 'Portuense') {
-                    riempiTabellaUnica(data, 'tbl_generale_port');
+                    riempiTabellaUnica(data, 'tbl_generale_port', impianto);
                 } else if (impianto === 'Annibaliano') {
-                    riempiTabellaSdoppiata(data, 'tbl_diesel_ann', 'tbl_benzina_ann');
+                    riempiTabellaSdoppiata(data, 'tbl_diesel_ann', 'tbl_benzina_ann', impianto);
                 }
             })
             .catch(err => console.error("Errore di comunicazione GET:", err));
         }
 
-        // ==========================================
-        // 4. FUNZIONI FILTRO E LOGICA DI VALIDAZIONE INTELLIGENTE
-        // ==========================================
         function estraiContatorePrecedente(dettagli, nomePompa) {
-            // Estrae il numero associato alla pompa (es: cerca "A1:" o "P1:")
             const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
             const match = dettagli.match(regex);
             return match ? parseFloat(match[1]) : null;
@@ -318,20 +303,17 @@
             nuovoValore = parseFloat(nuovoValore);
             if (isNaN(nuovoValore)) return true;
 
-            // Trova l'ultima chiusura disponibile nel database per questo specifico carburante
             const ultimaChiusura = ultimiMovimentiCaricati.find(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
-            if (!ultimaChiusura) return true; // Nessun dato precedente, salta il controllo
+            if (!ultimaChiusura) return true; 
 
             const valorePrecedente = estraiContatorePrecedente(ultimaChiusura.dettagli, nomePompa);
-            if (valorePrecedente === null) return true; // Pompa non trovata nel testo, salta
+            if (valorePrecedente === null) return true; 
 
-            // Controllo 1: Errore bloccante (Nuovo valore minore del precedente)
             if (nuovoValore < valorePrecedente) {
                 alert(`🚨 ERRORE BLOCCANTE - POMPA ${nomePompa}\n\nIl contatore digitato (${nuovoValore}) è INFERIORE rispetto all'ultimo dato salvato (${valorePrecedente}).\n\nL'invio è stato ANNULLATO per evitare di sballare i dati. Controlla e correggi.`);
                 return false;
             }
 
-            // Controllo 2: Avviso di anomalia (Salto superiore a 2000 unità)
             if (nuovoValore > valorePrecedente + 2000) {
                 const confermaAnomalia = confirm(`⚠️ RILEVATA ANOMALIA - POMPA ${nomePompa}\n\nIl valore inserito (${nuovoValore}) supera di oltre 2000 litri l'ultima lettura (${valorePrecedente}).\n\nSei ASSOLUTAMENTE SICURO che non sia un errore di battitura?\n\nClicca OK per forzare l'invio, o ANNULLA per correggere.`);
                 if (!confermaAnomalia) return false;
@@ -340,10 +322,29 @@
             return true;
         }
 
-        // ==========================================
-        // 5. COSTRUZIONE DELLE TABELLE HTML CON COLORE SFRIDO
-        // ==========================================
-        function riempiTabellaSdoppiata(data, idDiesel, idBenzina) {
+        // 🚨 FUNZIONE PER CHIEDERE IL PIN ED ELIMINARE UN RECORD ERRATO
+        function eliminaRecord(id, impianto) {
+            const pin = prompt("🔐 FUNZIONE PROTETTA\n\nInserisci il PIN di sicurezza per eliminare questo record di movimento:");
+            if (pin === null) return; // Operazione annullata dall'utente
+
+            fetch(`/api/movimenti/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Record rimosso correttamente dal Database SQL!");
+                    loadDatabaseData(impianto); // Aggiorna le tabelle e ricalcola le cisterne
+                } else {
+                    alert("Errore: " + data.error);
+                }
+            })
+            .catch(err => console.error("Errore durante l'eliminazione:", err));
+        }
+
+        function riempiTabellaSdoppiata(data, idDiesel, idBenzina, impianto) {
             const tbDiesel = document.getElementById(idDiesel);
             const tbBenzina = document.getElementById(idBenzina);
             tbDiesel.innerHTML = ''; tbBenzina.innerHTML = '';
@@ -351,8 +352,8 @@
             const dieselRows = data.filter(r => r.carburante === 'Diesel');
             const benzinaRows = data.filter(r => r.carburante === 'Benzina');
 
-            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessun movimento registrato.</td></tr>';
-            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
 
             data.forEach(row => {
                 const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
@@ -364,19 +365,22 @@
                     sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
                 }
 
-                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td></tr>`;
+                // Bottone di eliminazione iniettato nella riga
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+
+                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
                 
                 if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
                 if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
             });
         }
 
-        function riempiTabellaUnica(data, idTabella) {
+        function riempiTabellaUnica(data, idTabella, impianto) {
             const tb = document.getElementById(idTabella);
             tb.innerHTML = '';
             
             if(data.length === 0) { 
-                tb.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
                 return; 
             }
 
@@ -391,19 +395,19 @@
                     sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
                 }
 
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+
                 const tr = `<tr>
                     <td>${dataFormattata}</td>
                     <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
                     <td>${row.dettagli}</td>
                     <td>${sfridoTesto}</td>
+                    <td>${bottoneElimina}</td>
                 </tr>`;
                 tb.innerHTML += tr;
             });
         }
 
-        // ==========================================
-        // 5b. FUNZIONE CALCOLO GIACENZA ATTUALE (CHIUSURA + CARICHI MUTUALI)
-        // ==========================================
         function calcolaGiacenzaAttuale(carburante, data) {
             const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
             if (idxChiusura === -1) return 0;
@@ -437,9 +441,6 @@
             }
         }
 
-        // ==========================================
-        // 6. ESTRAZIONE DATI DAI FORM CON VALIDAZIONE ATTIVA
-        // ==========================================
         function inviaChiusura(event, impianto) {
             event.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' '); 
@@ -453,13 +454,11 @@
                 const cB3 = document.getElementById('c_B3_casal').value;
                 const rB = document.getElementById('stock_B_real_casal').value;
 
-                // Execution delle validazioni intelligenti
                 if (!validaContatorePompa("Diesel", "A1", cA1)) return;
                 if (!validaContatorePompa("Diesel", "B1", cB1)) return;
                 if (!validaContatorePompa("Benzina", "A3", cA3)) return;
                 if (!validaContatorePompa("Benzina", "B3", cB3)) return;
 
-                // Conferma visiva finale di riepilogo
                 const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
                 if (!conferma) return;
 
@@ -482,7 +481,6 @@
                 const rB4 = parseFloat(document.getElementById('stock_B4_real_port').value || 0);
                 const rB5 = parseFloat(document.getElementById('stock_B5_real_port').value || 0);
 
-                // Esecuzione verifiche matematiche su tutte le linee
                 if (!validaContatorePompa("Diesel", "P1", c1)) return;
                 if (!validaContatorePompa("Diesel", "P4", c4)) return;
                 if (!validaContatorePompa("Diesel", "P7", c7)) return;
@@ -498,11 +496,11 @@
                 if (!validaContatorePompa("Benzina", "P9", c9)) return;
                 if (!validaContatorePompa("Benzina", "P12", c12)) return;
 
-                constonferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel+", dettagli: `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel+", detalles = `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3:${c3} P6:${c6} P9:${c9} P12:${c12}`, giacenza_reale: rB4 + rB5 }, true);
                 event.target.reset();
             }
@@ -513,7 +511,6 @@
                 const c3 = document.getElementById('c_3_ann').value; const c8 = document.getElementById('c_8_ann').value;
                 const rB = document.getElementById('stock_B_real_ann').value;
 
-                // Esecuzione verifiche matematiche
                 if (!validaContatorePompa("Diesel", "P1", c1)) return;
                 if (!validaContatorePompa("Diesel", "P6", c6)) return;
                 if (!validaContatorePompa("Benzina", "P3", c3)) return;
@@ -544,7 +541,6 @@
             event.target.reset();
         }
 
-        // Avvio iniziale automatico sulla Home (Casal dei Pazzi)
         document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
     </script>
 </body>

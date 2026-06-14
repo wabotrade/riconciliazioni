@@ -37,8 +37,22 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    const match = dettagli.match(/\+\s*([\d.]+)/);
-    return match ? parseFloat(match[1]) : 0;
+    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L)
+    const matchCarico = dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/);
+    let totaleNetto = matchCarico ? parseFloat(matchCarico[1]) : 0;
+
+    // Fallback di sicurezza per i vecchi record salvati semplicemente come "+1000 L"
+    if (!matchCarico) {
+        const matchFallback = dettagli.match(/\+\s*([\d.]+)/);
+        totaleNetto = matchFallback ? parseFloat(matchFallback[1]) : 0;
+    }
+
+    // 2. Estrae la variazione di viaggio se esiste (es: -15 o +5) e la applica algebricamente
+    const matchVar = dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+    if (matchVar) {
+        totaleNetto += parseFloat(matchVar[1]);
+    }
+    return totaleNetto;
 }
 
 // 2. [POST] Salva movimento e calcola lo Sfrido
@@ -66,7 +80,7 @@ app.post('/api/salva_movimento', async (req, res) => {
             if (lastRows.length > 0) {
                 const ultimaChiusura = lastRows[0];
                 const contatoriAttuali = sommaContatori(dettagli);
-                const contatoriPrecedenti = sommaContatori(ultimaChiusura.dettagli); // CORRETTO IL REFUSO QUI
+                const contatoriPrecedenti = sommaContatori(ultimaChiusura.dettagli);
                 erogato = contatoriAttuali - contatoriPrecedenti;
                 if (erogato < 0) erogato = 0;
 
@@ -174,5 +188,5 @@ app.delete('/api/movimenti/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server Node.js attivo sulla porta ${PORT}`);
+    console.log("🚀 Server Node.js attivo sulla porta " + PORT);
 });

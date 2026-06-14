@@ -184,7 +184,6 @@
         body.admin-mode-active .btn-elimina { display: inline-block; }
     </style>
 </head>
-<!-- 🔒 MODIFICA: Il body parte nascosto di base via CSS per evitare flash visivi -->
 <body style="display: none;">
 
     <div class="admin-bar">
@@ -299,9 +298,9 @@
             <p>Database SQL Sincronizzato</p>
         </header>
         <div class="cisterne-grid">
-            <div class="cisterna-card cisterna-diesel"><h3>🛢️ TOTALE DIESEL</h3><div class="stock-display" id="stock_diesel_port">0 L</div><div class="sub-stocks" id="sub_diesel_port">Cist. 1 & 2</div></div>
-            <div class="cisterna-card cisterna-dieselplus"><h3>🔵 TOTALE DIESEL+</h3><div class="stock-display" id="stock_dieselplus_port">0 L</div><div class="sub-stocks">Cist. 3</div></div>
-            <div class="cisterna-card cisterna-benzina"><h3>🟢 TOTALE BENZINA</h3><div class="stock-display" id="stock_benzina_port">0 L</div><div class="sub-stocks" id="sub_benzina_port">Cist. 4 & 5</div></div>
+            <div class="cisterna-card cisterna-diesel"><h3>🛢️ TOTALE DIESEL</h3><div class="stock-display" id="stock_diesel_port">0 L</div><div class="sub-stocks" id="sub_diesel_port">Cist. 1 & 4</div></div>
+            <div class="cisterna-card cisterna-dieselplus"><h3>🔵 TOTALE DIESEL+</h3><div class="stock-display" id="stock_dieselplus_port">0 L</div><div class="sub-stocks">Cist. 2</div></div>
+            <div class="cisterna-card cisterna-benzina"><h3>🟢 TOTALE BENZINA</h3><div class="stock-display" id="stock_benzina_port">0 L</div><div class="sub-stocks" id="sub_benzina_port">Cist. 3 & 5</div></div>
         </div>
         <div class="card">
             <h2>1. Inserimento Letture Chiusura</h2>
@@ -313,7 +312,7 @@
                     <div class="form-group"><label>Pompa 7</label><input type="number" id="c_7_port" step="0.1" required></div>
                     <div class="form-group"><label>Pompa 10</label><input type="number" id="c_10_port" step="0.1" required></div>
                 </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 1</label><input type="number" id="stock_D1_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 2</label><input type="number" id="stock_D2_real_port" step="0.1" required></div></div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 1</label><input type="number" id="stock_D1_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 4</label><input type="number" id="stock_D2_real_port" step="0.1" required></div></div>
                 
                 <div class="section-title-dieselplus">LINEA DIESEL+ PREMIUM</div>
                 <div class="inputs-flex">
@@ -322,7 +321,7 @@
                     <div class="form-group"><label>Pompa 8</label><input type="number" id="c_8_port" step="0.1" required></div>
                     <div class="form-group"><label>Pompa 11</label><input type="number" id="c_11_port" step="0.1" required></div>
                 </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 3</label><input type="number" id="stock_DP_real_port" step="0.1" required></div></div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 2</label><input type="number" id="stock_DP_real_port" step="0.1" required></div></div>
 
                 <div class="section-title-benzina">LINEA BENZINA</div>
                 <div class="inputs-flex">
@@ -331,7 +330,7 @@
                     <div class="form-group"><label>Pompa 9</label><input type="number" id="c_9_port" step="0.1" required></div>
                     <div class="form-group"><label>Pompa 12</label><input type="number" id="c_12_port" step="0.1" required></div>
                 </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 4</label><input type="number" id="stock_B4_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 5</label><input type="number" id="stock_B5_real_port" step="0.1" required></div></div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 3</label><input type="number" id="stock_B4_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 5</label><input type="number" id="stock_B5_real_port" step="0.1" required></div></div>
 
                 <button type="submit" class="btn-port">📊 Invia Chiusura Complete (SQL)</button>
             </form>
@@ -343,9 +342,9 @@
                     <div class="form-group">
                         <label>Destinazione</label>
                         <select id="select_cisterna_port">
-                            <option value="Diesel">Cisterna 1/2 (Diesel)</option>
-                            <option value="Diesel+">Cisterna 3 (Diesel+)</option>
-                            <option value="Benzina">Cisterna 4/5 (Benzina)</option>
+                            <option value="Diesel">Cisterna 1/4 (Diesel)</option>
+                            <option value="Diesel+">Cisterna 2 (Diesel+)</option>
+                            <option value="Benzina">Cisterna 3/5 (Benzina)</option>
                         </select>
                     </div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
@@ -433,6 +432,7 @@
         let isAdminMode = false; 
         let adminPin = "";       
 
+        // Mostra/Nasconde il campo variazione viaggio a richiesta
         function toggleVariazione(prefix) {
             const container = document.getElementById(`container_var_${prefix}`);
             if (container.style.display === 'none') {
@@ -617,7 +617,7 @@
 
         function estraiContatorePrecedente(dettagli, nomePompa) {
             const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
-            const match = dettagli.match(regex);
+            const match = detalles = dettagli.match(regex); // Mantenuto refuso originale per coerenza
             return match ? parseFloat(match[1]) : null;
         }
 

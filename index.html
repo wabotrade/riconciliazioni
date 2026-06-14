@@ -52,7 +52,7 @@
         }
         body.admin-mode-active .admin-query-panel { display: block; }
         
-        /* Mini scheche KPI adattate a 4 colonne */
+        /* Mini schede riassuntive KPI */
         .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
         @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
         .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -426,7 +426,6 @@
         let isAdminMode = false; 
         let adminPin = "";       
 
-        // Mostra/Nasconde il campo variazione viaggio a richiesta
         function toggleVariazione(prefix) {
             const container = document.getElementById(`container_var_${prefix}`);
             if (container.style.display === 'none') {
@@ -498,12 +497,14 @@
                     document.getElementById('kpi_erogato').innerText = "0 L";
                     document.getElementById('kpi_carichi').innerText = "0 L";
                     document.getElementById('kpi_sfrido').innerText = "0 L";
+                    document.getElementById('kpi_var_viaggio').innerText = "0 L";
                     return;
                 }
 
                 let totErogato = 0;
                 let totCarichi = 0;
                 let totSfrido = 0;
+                let totVarViaggio = 0;
 
                 data.forEach(row => {
                     const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
@@ -514,8 +515,11 @@
                     totSfrido += parseFloat(row.sfrido || 0);
                     
                     if (row.operazione === "Carico Cisterna") {
-                        const match = row.dettagli.match(/\+\s*([\d.]+)/);
-                        if (match) totCarichi += parseFloat(match[1]);
+                        const matchCarico = row.dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || row.dettagli.match(/\+\s*([\d.]+)/);
+                        if (matchCarico) totCarichi += parseFloat(matchCarico[1]);
+
+                        const matchVar = row.dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+                        if (matchVar) totVarViaggio += parseFloat(matchVar[1]);
                     }
 
                     let sfridoTesto = '-';
@@ -538,6 +542,7 @@
                 document.getElementById('kpi_erogato').innerText = `${totErogato.toFixed(1)} L`;
                 document.getElementById('kpi_carichi').innerText = `${totCarichi.toFixed(1)} L`;
                 document.getElementById('kpi_sfrido').innerText = `${totSfrido.toFixed(1)} L`;
+                document.getElementById('kpi_var_viaggio').innerText = `${totVarViaggio.toFixed(1)} L`;
             })
             .catch(err => console.error("Errore di rete consultazione:", err));
         }
@@ -732,8 +737,11 @@
             
             for (let i = 0; i < idxChiusura; i++) {
                 if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
-                    const match = data[i].dettagli.match(/\+\s*([\d.]+)/);
-                    if (match) totale += parseFloat(match[1]);
+                    const matchCarico = data[i].dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || data[i].dettagli.match(/\+\s*([\d.]+)/);
+                    if (matchCarico) totale += parseFloat(matchCarico[1]);
+
+                    const matchVar = data[i].dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+                    if (matchVar) totale += parseFloat(matchVar[1]);
                 }
             }
             return totale.toFixed(1);
@@ -844,17 +852,40 @@
         function inviaCarico(event, impianto) {
             event.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            let targetCisterna = ""; let litri = 0;
+            let targetCisterna = ""; let litri = 0; let varViaggio = ""; let prefix = "";
 
-            if(impianto === 'Casal dei Pazzi') { targetCisterna = document.getElementById('select_cisterna_casal').value; litri = document.getElementById('litri_carico_casal').value; }
-            if(impianto === 'Portuense') { targetCisterna = document.getElementById('select_cisterna_port').value; litri = document.getElementById('litri_carico_port').value; }
-            if(impianto === 'Annibaliano') { targetCisterna = document.getElementById('select_cisterna_ann').value; litri = document.getElementById('litri_carico_ann').value; }
+            if(impianto === 'Casal dei Pazzi') { 
+                prefix = 'casal';
+                targetCisterna = document.getElementById('select_cisterna_casal').value; 
+                litri = document.getElementById('litri_carico_casal').value; 
+                varViaggio = document.getElementById('var_viaggio_casal').value;
+            }
+            if(impianto === 'Portuense') { 
+                prefix = 'port';
+                targetCisterna = document.getElementById('select_cisterna_port').value; 
+                litri = document.getElementById('litri_carico_port').value; 
+                varViaggio = document.getElementById('var_viaggio_port').value;
+            }
+            if(impianto === 'Annibaliano') { 
+                prefix = 'ann';
+                targetCisterna = document.getElementById('select_cisterna_ann').value; 
+                litri = document.getElementById('litri_carico_ann').value; 
+                varViaggio = document.getElementById('var_viaggio_ann').value;
+            }
 
-            const conferma = confirm(`❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità: +${litri} Litri\n\nVuoi registrare il carico?`);
+            let msgConferma = `❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità immessa in cisterna: +${litri} Litri`;
+            if (varViaggio) msgConferma += `\nCali/Eccedenze viaggio registrate: ${varViaggio} L`;
+            msgConferma += `\n\nVuoi procedere?`;
+
+            const conferma = confirm(msgConferma);
             if (!conferma) return;
 
-            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: `Autobotte: +${litri} L`, giacenza_reale: 0 }, true);
+            let dettagliTesto = `Autobotte: +${litri} L`;
+            if (varViaggio) dettagliTesto += ` | Cali/Eccedenze viaggio: ${varViaggio} L`;
+
+            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: dettagliTesto, giacenza_reale: 0 }, true);
             event.target.reset();
+            if(prefix) document.getElementById(`container_var_${prefix}`).style.display = 'none';
         }
 
         document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));

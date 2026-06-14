@@ -37,15 +37,9 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L)
-    const matchCarico = dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/);
+    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L o fallback +4000 L)
+    const matchCarico = dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || dettagli.match(/\+\s*([\d.]+)/);
     let totaleNetto = matchCarico ? parseFloat(matchCarico[1]) : 0;
-
-    // Fallback di sicurezza per i vecchi record salvati semplicemente come "+1000 L"
-    if (!matchCarico) {
-        const matchFallback = dettagli.match(/\+\s*([\d.]+)/);
-        totaleNetto = matchFallback ? parseFloat(matchFallback[1]) : 0;
-    }
 
     // 2. Estrae la variazione di viaggio se esiste (es: -15 o +5) e la applica algebricamente
     const matchVar = dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
@@ -58,7 +52,8 @@ function estraiLitriCarico(dettagli) {
 // 2. [POST] Salva movimento e calcola lo Sfrido
 app.post('/api/salva_movimento', async (req, res) => {
     try {
-        const { impianto, data_ora, operazione, carburante, dettagli, giacenza_reale } = req.body;
+        const { impianto, data_ora, operazione, carburante, dettagli, giacancy_reale } = req.body;
+        const giacenza_reale = req.body.giacenza_reale !== undefined ? req.body.giacenza_reale : giacancy_reale;
 
         if (!impianto || !operazione || !carburante) {
             return res.status(400).json({ success: false, error: "Dati incompleti" });
@@ -139,7 +134,7 @@ app.get('/api/movimenti/:impianto', async (req, res) => {
     }
 });
 
-// 🔍 4. [GET] Consultazione Avanzata Admin (SQL Filtri Dinamici)
+// 4. [GET] Consultazione Avanzata Admin
 app.get('/api/admin/consulta', async (req, res) => {
     try {
         const { pin, impianto, carburante, operazione, data_inizio, data_fine } = req.query;
@@ -167,7 +162,7 @@ app.get('/api/admin/consulta', async (req, res) => {
     }
 });
 
-// 🚨 5. [DELETE] Rimosso record errato
+// 5. [DELETE] Rimosso record errato
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;

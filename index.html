@@ -1,547 +1,545 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard Hub - Gestione Carburanti</title>
-    <style>
-        :root { 
-            --diesel-color: #343a40; --diesel-plus-color: #0056b3; --benzina-color: #28a745; 
-            --casal-color: #6f42c1; --port-color: #e67e22; --ann-color: #007bff;
-            --background-color: #f4f6f9; --card-color: #ffffff; --text-color: #212529; --border-color: #dee2e6; 
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', -apple-system, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; }
-        
-        /* Navigazione a Schede (Tabs) */
-        .tabs-container { display: flex; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
-        .tab-btn { flex: 1; padding: 18px 10px; border: none; background: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #6c757d; border-bottom: 4px solid transparent; white-space: nowrap; transition: 0.3s; }
-        .tab-btn:hover { background-color: #f8f9fa; }
-        .tab-btn.active[data-target="casal"] { color: var(--casal-color); border-bottom-color: var(--casal-color); }
-        .tab-btn.active[data-target="portuense"] { color: var(--port-color); border-bottom-color: var(--port-color); }
-        .tab-btn.active[data-target="annibaliano"] { color: var(--ann-color); border-bottom-color: var(--ann-color); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Hub - Gestione Carburanti</title>
+    <style>
+        :root { 
+            --diesel-color: #343a40; --diesel-plus-color: #0056b3; --benzina-color: #28a745; 
+            --casal-color: #6f42c1; --port-color: #e67e22; --ann-color: #007bff;
+            --background-color: #f4f6f9; --card-color: #ffffff; --text-color: #212529; --border-color: #dee2e6; 
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', -apple-system, sans-serif; background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; }
+        
+        /* Navigazione a Schede (Tabs) */
+        .tabs-container { display: flex; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
+        .tab-btn { flex: 1; padding: 18px 10px; border: none; background: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #6c757d; border-bottom: 4px solid transparent; white-space: nowrap; transition: 0.3s; }
+        .tab-btn:hover { background-color: #f8f9fa; }
+        .tab-btn.active[data-target="casal"] { color: var(--casal-color); border-bottom-color: var(--casal-color); }
+        .tab-btn.active[data-target="portuense"] { color: var(--port-color); border-bottom-color: var(--port-color); }
+        .tab-btn.active[data-target="annibaliano"] { color: var(--ann-color); border-bottom-color: var(--ann-color); }
 
-        .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
-        .cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
-        @media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
-        .cisterna-card { background: var(--card-color); border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #ccc; }
-        .cisterna-card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
-        .cisterna-diesel { border-top-color: var(--diesel-color); } .cisterna-dieselplus { border-top-color: var(--diesel-plus-color); } .cisterna-benzina { border-top-color: var(--benzina-color); }
-        .stock-display { font-size: 2.2rem; font-weight: bold; margin: 5px 0; }
-        .cisterna-diesel .stock-display { color: var(--diesel-color); } .cisterna-dieselplus .stock-display { color: var(--diesel-plus-color); } .cisterna-benzina .stock-display { color: var(--benzina-color); }
-        .sub-stocks { font-size: 0.85rem; color: #495057; background: #e9ecef; padding: 6px; border-radius: 6px; margin-top: 5px; }
+        .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        .cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
+        .cisterna-card { background: var(--card-color); border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #ccc; }
+        .cisterna-card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .cisterna-diesel { border-top-color: var(--diesel-color); } .cisterna-dieselplus { border-top-color: var(--diesel-plus-color); } .cisterna-benzina { border-top-color: var(--benzina-color); }
+        .stock-display { font-size: 2.2rem; font-weight: bold; margin: 5px 0; }
+        .cisterna-diesel .stock-display { color: var(--diesel-color); } .cisterna-dieselplus .stock-display { color: var(--diesel-plus-color); } .cisterna-benzina .stock-display { color: var(--benzina-color); }
+        .sub-stocks { font-size: 0.85rem; color: #495057; background: #e9ecef; padding: 6px; border-radius: 6px; margin-top: 5px; }
 
-        .card { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 15px; }
-        .card h2 { margin-top: 0; font-size: 1.1rem; padding-bottom: 8px; border-bottom: 2px solid var(--background-color); text-transform: uppercase; }
-        .section-title-diesel { color: var(--diesel-color); border-left: 4px solid var(--diesel-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
-        .section-title-dieselplus { color: var(--diesel-plus-color); border-left: 4px solid var(--diesel-plus-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
-        .section-title-benzina { color: var(--benzina-color); border-left: 4px solid var(--benzina-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
-        
-        .inputs-flex { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
-        @media (min-width: 768px) { .inputs-flex { flex-direction: row; flex-wrap: wrap; gap: 15px; } .form-group { flex: 1; min-width: 180px; } }
-        .form-group { width: 100%; display: flex; flex-direction: column; }
-        .form-group label { font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #495057; }
-        .form-group input, .form-group select { padding: 12px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%; }
-        
-        button { padding: 14px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; width: 100%; }
-        @media (min-width: 768px) { button { width: auto; min-width: 250px; display: block; margin-left: auto; margin-right: auto; } }
-        .btn-casal { background-color: var(--casal-color); }
-        .btn-port { background-color: var(--port-color); }
-        .btn-ann { background-color: var(--ann-color); }
-        .btn-acquisto { background-color: #28a745; }
+        .card { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .card h2 { margin-top: 0; font-size: 1.1rem; padding-bottom: 8px; border-bottom: 2px solid var(--background-color); text-transform: uppercase; }
+        .section-title-diesel { color: var(--diesel-color); border-left: 4px solid var(--diesel-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+        .section-title-dieselplus { color: var(--diesel-plus-color); border-left: 4px solid var(--diesel-plus-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+        .section-title-benzina { color: var(--benzina-color); border-left: 4px solid var(--benzina-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+        
+        .inputs-flex { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
+        @media (min-width: 768px) { .inputs-flex { flex-direction: row; flex-wrap: wrap; gap: 15px; } .form-group { flex: 1; min-width: 180px; } }
+        .form-group { width: 100%; display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #495057; }
+        .form-group input, .form-group select { padding: 12px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%; }
+        
+        button { padding: 14px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; width: 100%; }
+        @media (min-width: 768px) { button { width: auto; min-width: 250px; display: block; margin-left: auto; margin-right: auto; } }
+        .btn-casal { background-color: var(--casal-color); }
+        .btn-port { background-color: var(--port-color); }
+        .btn-ann { background-color: var(--ann-color); }
+        .btn-acquisto { background-color: #28a745; }
 
-        .tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
-        @media (min-width: 1024px) { .tables-flex-container { flex-direction: row; } }
-        .table-section { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); flex: 1; min-width: 0; }
-        .table-responsive { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
-        th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
-        .badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
-        .badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
-        .btn-elimina { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
-        .btn-elimina:hover { background: #bd2130; }
-    </style>
+        .tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
+        @media (min-width: 1024px) { .tables-flex-container { flex-direction: row; } }
+        .table-section { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); flex: 1; min-width: 0; }
+        .table-responsive { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+        th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
+        .badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
+        .badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
+        .btn-elimina { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+        .btn-elimina:hover { background: #bd2130; }
+    </style>
 </head>
 <body>
 
-    <div class="tabs-container">
-        <button class="tab-btn active" data-target="casal">🟣 Casal dei Pazzi</button>
-        <button class="tab-btn" data-target="portuense">🟠 Portuense</button>
-        <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
-    </div>
+    <div class="tabs-container">
+        <button class="tab-btn active" data-target="casal">🟣 Casal dei Pazzi</button>
+        <button class="tab-btn" data-target="portuense">🟠 Portuense</button>
+        <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
+    </div>
 
-    <div id="casal" class="tab-content active">
-        <header>
-            <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
-            <p>Database SQL Sincronizzato</p>
-        </header>
-        <div class="cisterne-grid">
-            <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_casal">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: A1, B1</div></div>
-            <div class="cisterna-card cisterna-benzina"><h3>🟢 CISTERNA: BENZINA</h3><div class="stock-display" id="stock_benzina_casal">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: A3, B3</div></div>
-        </div>
-        <div class="card">
-            <h2>1. Inserimento Letture Chiusura</h2>
-            <form onsubmit="inviaChiusura(event, 'Casal dei Pazzi')">
-                <div class="section-title-diesel">LINEA DIESEL</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Contatore Pompa A1</label><input type="number" id="c_A1_casal" step="0.1" required></div>
-                    <div class="form-group"><label>Contatore Pompa B1</label><input type="number" id="c_B1_casal" step="0.1" required></div>
-                    <div class="form-group"><label>Giacenza REALE Diesel</label><input type="number" id="stock_D_real_casal" step="0.1" required></div>
-                </div>
-                <div class="section-title-benzina">LINEA BENZINA</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Contatore Pompa A3</label><input type="number" id="c_A3_casal" step="0.1" required></div>
-                    <div class="form-group"><label>Contatore Pompa B3</label><input type="number" id="c_B3_casal" step="0.1" required></div>
-                    <div class="form-group"><label>Giacenza REALE Benzina</label><input type="number" id="stock_B_real_casal" step="0.1" required></div>
-                </div>
-                <button type="submit" class="btn-casal">📊 Invia Chiusura (SQL)</button>
-            </form>
-        </div>
-        <div class="card">
-            <h2>2. Registra Scarico Autobotte</h2>
-            <form onsubmit="inviaCarico(event, 'Casal dei Pazzi')">
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Destinazione</label><select id="select_cisterna_casal"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
-                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_casal" step="0.1" required></div>
-                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
-                </div>
-            </form>
-        </div>
-        <div class="tables-flex-container">
-            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-        </div>
-    </div>
+    <div id="casal" class="tab-content active">
+        <header>
+            <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
+            <p>Database SQL Sincronizzato</p>
+        </header>
+        <div class="cisterne-grid">
+            <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_casal">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: A1, B1</div></div>
+            <div class="cisterna-card cisterna-benzina"><h3>🟢 CISTERNA: BENZINA</h3><div class="stock-display" id="stock_benzina_casal">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: A3, B3</div></div>
+        </div>
+        <div class="card">
+            <h2>1. Inserimento Letture Chiusura</h2>
+            <form onsubmit="inviaChiusura(event, 'Casal dei Pazzi')">
+                <div class="section-title-diesel">LINEA DIESEL</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa A1</label><input type="number" id="c_A1_casal" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa B1</label><input type="number" id="c_B1_casal" step="0.1" required></div>
+                    <div class="form-group"><label>Giacenza REALE Diesel</label><input type="number" id="stock_D_real_casal" step="0.1" required></div>
+                </div>
+                <div class="section-title-benzina">LINEA BENZINA</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa A3</label><input type="number" id="c_A3_casal" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa B3</label><input type="number" id="c_B3_casal" step="0.1" required></div>
+                    <div class="form-group"><label>Giacenza REALE Benzina</label><input type="number" id="stock_B_real_casal" step="0.1" required></div>
+                </div>
+                <button type="submit" class="btn-casal">📊 Invia Chiusura (SQL)</button>
+            </form>
+        </div>
+        <div class="card">
+            <h2>2. Registra Scarico Autobotte</h2>
+            <form onsubmit="inviaCarico(event, 'Casal dei Pazzi')">
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Destinazione</label><select id="select_cisterna_casal"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
+                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_casal" step="0.1" required></div>
+                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="tables-flex-container">
+            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_casal"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+        </div>
+    </div>
 
-    <div id="portuense" class="tab-content">
-        <header>
-            <h1>⛽ Registro Chiusure - Portuense</h1>
-            <p>Database SQL Sincronizzato</p>
-        </header>
-        <div class="cisterne-grid">
-            <div class="cisterna-card cisterna-diesel"><h3>🛢️ TOTALE DIESEL</h3><div class="stock-display" id="stock_diesel_port">0 L</div><div class="sub-stocks" id="sub_diesel_port">Cist. 1 & 2</div></div>
-            <div class="cisterna-card cisterna-dieselplus"><h3>🔵 TOTALE DIESEL+</h3><div class="stock-display" id="stock_dieselplus_port">0 L</div><div class="sub-stocks">Cist. 3</div></div>
-            <div class="cisterna-card cisterna-benzina"><h3>🟢 TOTALE BENZINA</h3><div class="stock-display" id="stock_benzina_port">0 L</div><div class="sub-stocks" id="sub_benzina_port">Cist. 4 & 5</div></div>
-        </div>
-        <div class="card">
-            <h2>1. Inserimento Letture Chiusura</h2>
-            <form onsubmit="inviaChiusura(event, 'Portuense')">
-                <div class="section-title-diesel">LINEA DIESEL STANDARD</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Pompa 1</label><input type="number" id="c_1_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 4</label><input type="number" id="c_4_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 7</label><input type="number" id="c_7_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 10</label><input type="number" id="c_10_port" step="0.1" required></div>
-                </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 1</label><input type="number" id="stock_D1_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 2</label><input type="number" id="stock_D2_real_port" step="0.1" required></div></div>
-                
-                <div class="section-title-dieselplus">LINEA DIESEL+ PREMIUM</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Pompa 2</label><input type="number" id="c_2_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 5</label><input type="number" id="c_5_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 8</label><input type="number" id="c_8_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 11</label><input type="number" id="c_11_port" step="0.1" required></div>
-                </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 3</label><input type="number" id="stock_DP_real_port" step="0.1" required></div></div>
+    <div id="portuense" class="tab-content">
+        <header>
+            <h1>⛽ Registro Chiusure - Portuense</h1>
+            <p>Database SQL Sincronizzato</p>
+        </header>
+        <div class="cisterne-grid">
+            <div class="cisterna-card cisterna-diesel"><h3>🛢️ TOTALE DIESEL</h3><div class="stock-display" id="stock_diesel_port">0 L</div><div class="sub-stocks" id="sub_diesel_port">Cist. 1 & 2</div></div>
+            <div class="cisterna-card cisterna-dieselplus"><h3>🔵 TOTALE DIESEL+</h3><div class="stock-display" id="stock_dieselplus_port">0 L</div><div class="sub-stocks">Cist. 3</div></div>
+            <div class="cisterna-card cisterna-benzina"><h3>🟢 TOTALE BENZINA</h3><div class="stock-display" id="stock_benzina_port">0 L</div><div class="sub-stocks" id="sub_benzina_port">Cist. 4 & 5</div></div>
+        </div>
+        <div class="card">
+            <h2>1. Inserimento Letture Chiusura</h2>
+            <form onsubmit="inviaChiusura(event, 'Portuense')">
+                <div class="section-title-diesel">LINEA DIESEL STANDARD</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Pompa 1</label><input type="number" id="c_1_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 4</label><input type="number" id="c_4_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 7</label><input type="number" id="c_7_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 10</label><input type="number" id="c_10_port" step="0.1" required></div>
+                </div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 1</label><input type="number" id="stock_D1_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 2</label><input type="number" id="stock_D2_real_port" step="0.1" required></div></div>
+                
+                <div class="section-title-dieselplus">LINEA DIESEL+ PREMIUM</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Pompa 2</label><input type="number" id="c_2_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 5</label><input type="number" id="c_5_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 8</label><input type="number" id="c_8_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 11</label><input type="number" id="c_11_port" step="0.1" required></div>
+                </div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 3</label><input type="number" id="stock_DP_real_port" step="0.1" required></div></div>
 
-                <div class="section-title-benzina">LINEA BENZINA</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Pompa 3</label><input type="number" id="c_3_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 6</label><input type="number" id="c_6_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 9</label><input type="number" id="c_9_port" step="0.1" required></div>
-                    <div class="form-group"><label>Pompa 12</label><input type="number" id="c_12_port" step="0.1" required></div>
-                </div>
-                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 4</label><input type="number" id="stock_B4_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 5</label><input type="number" id="stock_B5_real_port" step="0.1" required></div></div>
+                <div class="section-title-benzina">LINEA BENZINA</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Pompa 3</label><input type="number" id="c_3_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 6</label><input type="number" id="c_6_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 9</label><input type="number" id="c_9_port" step="0.1" required></div>
+                    <div class="form-group"><label>Pompa 12</label><input type="number" id="c_12_port" step="0.1" required></div>
+                </div>
+                <div class="inputs-flex" style="background:#f8f9fa; padding:10px;"><div class="form-group"><label>Reale Cist. 4</label><input type="number" id="stock_B4_real_port" step="0.1" required></div><div class="form-group"><label>Reale Cist. 5</label><input type="number" id="stock_B5_real_port" step="0.1" required></div></div>
 
-                <button type="submit" class="btn-port">📊 Invia Chiusura Completa (SQL)</button>
-            </form>
-        </div>
-        <div class="card">
-            <h2>2. Registra Scarico Autobotte</h2>
-            <form onsubmit="inviaCarico(event, 'Portuense')">
-                <div class="inputs-flex">
-                    <div class="form-group">
-                        <label>Destinazione</label>
-                        <select id="select_cisterna_port">
-                            <option value="Diesel">Cisterna 1/2 (Diesel)</option>
-                            <option value="Diesel+">Cisterna 3 (Diesel+)</option>
-                            <option value="Benzina">Cisterna 4/5 (Benzina)</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
-                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
-                </div>
-            </form>
-        </div>
-        <div class="table-section">
-            <h2>📋 Movimenti Database - Portuense</h2>
-            <div class="table-responsive">
-                <table>
-                    <thead><tr><th>Data</th><th>Carburante</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
-                    <tbody id="tbl_generale_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                <button type="submit" class="btn-port">📊 Invia Chiusura Completa (SQL)</button>
+            </form>
+        </div>
+        <div class="card">
+            <h2>2. Registra Scarico Autobotte</h2>
+            <form onsubmit="inviaCarico(event, 'Portuense')">
+                <div class="inputs-flex">
+                    <div class="form-group">
+                        <label>Destinazione</label>
+                        <select id="select_cisterna_port">
+                            <option value="Diesel">Cisterna 1/2 (Diesel)</option>
+                            <option value="Diesel+">Cisterna 3 (Diesel+)</option>
+                            <option value="Benzina">Cisterna 4/5 (Benzina)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
+                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="table-section">
+            <h2>📋 Movimenti Database - Portuense</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Data</th><th>Carburante</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                    <tbody id="tbl_generale_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <div id="annibaliano" class="tab-content">
-        <header>
-            <h1>⛽ Registro Chiusure - Annibaliano</h1>
-            <p>Database SQL Sincronizzato</p>
-        </header>
-        <div class="cisterne-grid">
-            <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_ann">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: 1, 6</div></div>
-            <div class="cisterna-card cisterna-benzina"><h3>🟢 CISTERNA: BENZINA</h3><div class="stock-display" id="stock_benzina_ann">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: 3, 8</div></div>
-        </div>
-        <div class="card">
-            <h2>1. Inserimento Letture Chiusura</h2>
-            <form onsubmit="inviaChiusura(event, 'Annibaliano')">
-                <div class="section-title-diesel">LINEA DIESEL</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Contatore Pompa 1</label><input type="number" id="c_1_ann" step="0.1" required></div>
-                    <div class="form-group"><label>Contatore Pompa 6</label><input type="number" id="c_6_ann" step="0.1" required></div>
-                    <div class="form-group"><label>Giacenza REALE Diesel</label><input type="number" id="stock_D_real_ann" step="0.1" required></div>
-                </div>
-                <div class="section-title-benzina">LINEA BENZINA</div>
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Contatore Pompa 3</label><input type="number" id="c_3_ann" step="0.1" required></div>
-                    <div class="form-group"><label>Contatore Pompa 8</label><input type="number" id="c_8_ann" step="0.1" required></div>
-                    <div class="form-group"><label>Giacenza REALE Benzina</label><input type="number" id="stock_B_real_ann" step="0.1" required></div>
-                </div>
-                <button type="submit" class="btn-ann">📊 Invia Chiusura (SQL)</button>
-            </form>
-        </div>
-        <div class="card">
-            <h2>2. Registra Scarico Autobotte</h2>
-            <form onsubmit="inviaCarico(event, 'Annibaliano')">
-                <div class="inputs-flex">
-                    <div class="form-group"><label>Destinazione</label><select id="select_cisterna_ann"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
-                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_ann" step="0.1" required></div>
-                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
-                </div>
-            </form>
-        </div>
-        <div class="tables-flex-container">
-            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
-        </div>
-    </div>
+    <div id="annibaliano" class="tab-content">
+        <header>
+            <h1>⛽ Registro Chiusure - Annibaliano</h1>
+            <p>Database SQL Sincronizzato</p>
+        </header>
+        <div class="cisterne-grid">
+            <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_ann">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: 1, 6</div></div>
+            <div class="cisterna-card cisterna-benzina"><h3>🟢 CISTERNA: BENZINA</h3><div class="stock-display" id="stock_benzina_ann">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: 3, 8</div></div>
+        </div>
+        <div class="card">
+            <h2>1. Inserimento Letture Chiusura</h2>
+            <form onsubmit="inviaChiusura(event, 'Annibaliano')">
+                <div class="section-title-diesel">LINEA DIESEL</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa 1</label><input type="number" id="c_1_ann" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa 6</label><input type="number" id="c_6_ann" step="0.1" required></div>
+                    <div class="form-group"><label>Giacenza REALE Diesel</label><input type="number" id="stock_D_real_ann" step="0.1" required></div>
+                </div>
+                <div class="section-title-benzina">LINEA BENZINA</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa 3</label><input type="number" id="c_3_ann" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa 8</label><input type="number" id="c_8_ann" step="0.1" required></div>
+                    <div class="form-group"><label>Giacenza REALE Benzina</label><input type="number" id="stock_B_real_ann" step="0.1" required></div>
+                </div>
+                <button type="submit" class="btn-ann">📊 Invia Chiusura (SQL)</button>
+            </form>
+        </div>
+        <div class="card">
+            <h2>2. Registra Scarico Autobotte</h2>
+            <form onsubmit="inviaCarico(event, 'Annibaliano')">
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Destinazione</label><select id="select_cisterna_ann"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
+                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_ann" step="0.1" required></div>
+                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="tables-flex-container">
+            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+        </div>
+    </div>
 
-    <script>
-        let ultimiMovimentiCaricati = [];
+    <script>
+        let ultimiMovimentiCaricati = [];
 
-        document.querySelectorAll('.tab-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                
-                button.classList.add('active');
-                const targetId = button.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                button.classList.add('active');
+                const targetId = button.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
 
-                let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : 'Annibaliano');
-                loadDatabaseData(nomeImpianto);
-            });
-        });
+                let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : 'Annibaliano');
+                loadDatabaseData(nomeImpianto);
+            });
+        });
 
-        function inviaAlDatabase(payload, mostraAlert = true) {
-            fetch('/api/salva_movimento', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    if (mostraAlert) {
-                        alert("Operazione registrata correttamente in MySQL!");
-                        loadDatabaseData(payload.impianto); 
-                    }
-                } else {
-                    alert("Errore del Server DB: " + data.error);
-                }
-            })
-            .catch(err => {
-                console.error("Errore di rete:", err);
-                alert("Errore di connessione. Controlla la console del browser.");
-            });
-        }
+        function inviaAlDatabase(payload, mostraAlert = true) {
+            fetch('/api/salva_movimento', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if (mostraAlert) {
+                        alert("Operazione registrata correttamente in MySQL!");
+                        loadDatabaseData(payload.impianto); 
+                    }
+                } else {
+                    alert("Errore del Server DB: " + data.error);
+                }
+            })
+            .catch(err => {
+                console.error("Errore di rete:", err);
+                alert("Errore di connessione. Controlla la console del browser.");
+            });
+        }
 
-        function loadDatabaseData(impianto) {
-            fetch(`/api/movimenti/${encodeURIComponent(impianto)}`)
-            .then(res => res.json())
-            .then(response => {
-                if(!response.success) { 
-                    console.error("Errore recupero dati:", response.error); 
-                    return; 
-                }
-                
-                ultimiMovimentiCaricati = response.data; 
-                const data = response.data;
-                aggiornaContatoriGiacenza(impianto, data);
+        function loadDatabaseData(impianto) {
+            fetch(`/api/movimenti/${encodeURIComponent(impianto)}`)
+            .then(res => res.json())
+            .then(response => {
+                if(!response.success) { 
+                    console.error("Errore recupero dati:", response.error); 
+                    return; 
+                }
+                
+                ultimiMovimentiCaricati = response.data; 
+                const data = response.data;
+                aggiornaContatoriGiacenza(impianto, data);
 
-                if (impianto === 'Casal dei Pazzi') {
-                    riempiTabellaSdoppiata(data, 'tbl_diesel_casal', 'tbl_benzina_casal', impianto);
-                } else if (impianto === 'Portuense') {
-                    riempiTabellaUnica(data, 'tbl_generale_port', impianto);
-                } else if (impianto === 'Annibaliano') {
-                    riempiTabellaSdoppiata(data, 'tbl_diesel_ann', 'tbl_benzina_ann', impianto);
-                }
-            })
-            .catch(err => console.error("Errore di comunicazione GET:", err));
-        }
+                if (impianto === 'Casal dei Pazzi') {
+                    riempiTabellaSdoppiata(data, 'tbl_diesel_casal', 'tbl_benzina_casal', impianto);
+                } else if (impianto === 'Portuense') {
+                    riempiTabellaUnica(data, 'tbl_generale_port', impianto);
+                } else if (impianto === 'Annibaliano') {
+                    riempiTabellaSdoppiata(data, 'tbl_diesel_ann', 'tbl_benzina_ann', impianto);
+                }
+            })
+            .catch(err => console.error("Errore di comunicazione GET:", err));
+        }
 
-        function estraiContatorePrecedente(dettagli, nomePompa) {
-            const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
-            const match = dettagli.match(regex);
-            return match ? parseFloat(match[1]) : null;
-        }
+        function estraiContatorePrecedente(dettagli, nomePompa) {
+            const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
+            const match = dettagli.match(regex);
+            return match ? parseFloat(match[1]) : null;
+        }
 
-        function validaContatorePompa(carburante, nomePompa, nuovoValore) {
-            nuovoValore = parseFloat(nuovoValore);
-            if (isNaN(nuovoValore)) return true;
+        function validaContatorePompa(carburante, nomePompa, nuovoValore) {
+            nuovoValore = parseFloat(nuovoValore);
+            if (isNaN(nuovoValore)) return true;
 
-            const ultimaChiusura = ultimiMovimentiCaricati.find(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
-            if (!ultimaChiusura) return true; 
+            const ultimaChiusura = ultimiMovimentiCaricati.find(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (!ultimaChiusura) return true; 
 
-            const valorePrecedente = estraiContatorePrecedente(ultimaChiusura.dettagli, nomePompa);
-            if (valorePrecedente === null) return true; 
+            const valorePrecedente = estraiContatorePrecedente(ultimaChiusura.dettagli, nomePompa);
+            if (valorePrecedente === null) return true; 
 
-            if (nuovoValore < valorePrecedente) {
-                alert(`🚨 ERRORE BLOCCANTE - POMPA ${nomePompa}\n\nIl contatore digitato (${nuovoValore}) è INFERIORE rispetto all'ultimo dato salvato (${valorePrecedente}).\n\nL'invio è stato ANNULLATO per evitare di sballare i dati. Controlla e correggi.`);
-                return false;
-            }
+            if (nuovoValore < valorePrecedente) {
+                alert(`🚨 ERRORE BLOCCANTE - POMPA ${nomePompa}\n\nIl contatore digitato (${nuovoValore}) è INFERIORE rispetto all'ultimo dato salvato (${valorePrecedente}).\n\nL'invio è stato ANNULLATO per evitare di sballare i dati. Controlla e correggi.`);
+                return false;
+            }
 
-            if (nuovoValore > valorePrecedente + 2000) {
-                const confermaAnomalia = confirm(`⚠️ RILEVATA ANOMALIA - POMPA ${nomePompa}\n\nIl valore inserito (${nuovoValore}) supera di oltre 2000 litri l'ultima lettura (${valorePrecedente}).\n\nSei ASSOLUTAMENTE SICURO che non sia un errore di battitura?\n\nClicca OK per forzare l'invio, o ANNULLA per correggere.`);
-                if (!confermaAnomalia) return false;
-            }
+            if (nuovoValore > valorePrecedente + 2000) {
+                const confermaAnomalia = confirm(`⚠️ RILEVATA ANOMALIA - POMPA ${nomePompa}\n\nIl valore inserito (${nuovoValore}) supera di oltre 2000 litri l'ultima lettura (${valorePrecedente}).\n\nSei ASSOLUTAMENTE SICURO che non sia un errore di battitura?\n\nClicca OK per forzare l'invio, o ANNULLA per correggere.`);
+                if (!confermaAnomalia) return false;
+            }
 
-            return true;
-        }
+            return true;
+        }
 
-        // 🚨 FUNZIONE PER CHIEDERE IL PIN ED ELIMINARE UN RECORD ERRATO
-        function eliminaRecord(id, impianto) {
-            const pin = prompt("🔐 FUNZIONE PROTETTA\n\nInserisci il PIN di sicurezza per eliminare questo record di movimento:");
-            if (pin === null) return; // Operazione annullata dall'utente
+        function eliminaRecord(id, impianto) {
+            const pin = prompt("🔐 FUNZIONE PROTETTA\n\nInserisci il PIN di sicurezza per eliminare questo record di movimento:");
+            if (pin === null) return; 
 
-            fetch(`/api/movimenti/${id}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pin: pin })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Record rimosso correttamente dal Database SQL!");
-                    loadDatabaseData(impianto); // Aggiorna le tabelle e ricalcola le cisterne
-                } else {
-                    alert("Errore: " + data.error);
-                }
-            })
-            .catch(err => console.error("Errore durante l'eliminazione:", err));
-        }
+            fetch(`/api/movimenti/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Record rimosso correttamente dal Database SQL!");
+                    loadDatabaseData(impianto); 
+                } else {
+                    alert("Errore: " + data.error);
+                }
+            })
+            .catch(err => console.error("Errore durante l'eliminazione:", err));
+        }
 
-        function riempiTabellaSdoppiata(data, idDiesel, idBenzina, impianto) {
-            const tbDiesel = document.getElementById(idDiesel);
-            const tbBenzina = document.getElementById(idBenzina);
-            tbDiesel.innerHTML = ''; tbBenzina.innerHTML = '';
-            
-            const dieselRows = data.filter(r => r.carburante === 'Diesel');
-            const benzinaRows = data.filter(r => r.carburante === 'Benzina');
+        function riempiTabellaSdoppiata(data, idDiesel, idBenzina, impianto) {
+            const tbDiesel = document.getElementById(idDiesel);
+            const tbBenzina = document.getElementById(idBenzina);
+            tbDiesel.innerHTML = ''; tbBenzina.innerHTML = '';
+            
+            const dieselRows = data.filter(r => r.carburante === 'Diesel');
+            const benzinaRows = data.filter(r => r.carburante === 'Benzina');
 
-            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
-            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
 
-            data.forEach(row => {
-                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
-                const badgeClass = row.operazione.includes("Carico") ? "badge-carico" : "badge-diesel";
-                
-                let sfridoTesto = '-';
-                if (row.sfrido !== null) {
-                    const val = parseFloat(row.sfrido).toFixed(1);
-                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
-                }
+            data.forEach(row => {
+                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                const badgeClass = row.operazione.includes("Carico") ? "badge-carico" : "badge-diesel";
+                
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
 
-                // Bottone di eliminazione iniettato nella riga
-                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ ... Elimina</button>`;
 
-                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
-                
-                if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
-                if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
-            });
-        }
+                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
+                
+                if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
+                if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
+            });
+        }
 
-        function riempiTabellaUnica(data, idTabella, impianto) {
-            const tb = document.getElementById(idTabella);
-            tb.innerHTML = '';
-            
-            if(data.length === 0) { 
-                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
-                return; 
-            }
+        function riempiTabellaUnica(data, idTabella, impianto) {
+            const tb = document.getElementById(idTabella);
+            tb.innerHTML = '';
+            
+            if(data.length === 0) { 
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
+                return; 
+            }
 
-            data.forEach(row => {
-                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
-                let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
-                if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
+            data.forEach(row => {
+                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
+                if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
 
-                let sfridoTesto = '-';
-                if (row.sfrido !== null) {
-                    const val = parseFloat(row.sfrido).toFixed(1);
-                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
-                }
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
 
-                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
 
-                const tr = `<tr>
-                    <td>${dataFormattata}</td>
-                    <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
-                    <td>${row.dettagli}</td>
-                    <td>${sfridoTesto}</td>
-                    <td>${bottoneElimina}</td>
-                </tr>`;
-                tb.innerHTML += tr;
-            });
-        }
+                const tr = `<tr>
+                    <td>${dataFormattata}</td>
+                    <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
+                    <td>${row.dettagli}</td>
+                    <td>${sfridoTesto}</td>
+                    <td>${bottoneElimina}</td>
+                </tr>`;
+                tb.innerHTML += tr;
+            });
+        }
 
-        function calcolaGiacenzaAttuale(carburante, data) {
-            const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
-            if (idxChiusura === -1) return 0;
-            
-            let totale = parseFloat(data[idxChiusura].giacenza_reale || 0);
-            
-            for (let i = 0; i < idxChiusura; i++) {
-                if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
-                    const match = data[i].dettagli.match(/\+\s*([\d.]+)/);
-                    if (match) totale += parseFloat(match[1]);
-                }
-            }
-            return totale.toFixed(1);
-        }
+        function calcolaGiacenzaAttuale(carburante, data) {
+            const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (idxChiusura === -1) return 0;
+            
+            let totale = parseFloat(data[idxChiusura].giacenza_reale || 0);
+            
+            for (let i = 0; i < idxChiusura; i++) {
+                if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
+                    const match = data[i].dettagli.match(/\+\s*([\d.]+)/);
+                    if (match) totale += parseFloat(match[1]);
+                }
+            }
+            return totale.toFixed(1);
+        }
 
-        function aggiornaContatoriGiacenza(impianto, data) {
-            const dieselAttuale = calcolaGiacenzaAttuale('Diesel', data);
-            const benzinaAttuale = calcolaGiacenzaAttuale('Benzina', data);
+        function aggiornaContatoriGiacenza(impianto, data) {
+            const dieselAttuale = calcolaGiacenzaAttuale('Diesel', data);
+            const benzinaAttuale = calcolaGiacenzaAttuale('Benzina', data);
 
-            if (impianto === 'Casal dei Pazzi') {
-                document.getElementById('stock_diesel_casal').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_benzina_casal').innerText = `${benzinaAttuale} L`;
-            } else if (impianto === 'Annibaliano') {
-                document.getElementById('stock_diesel_ann').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_benzina_ann').innerText = `${benzinaAttuale} L`;
-            } else if (impianto === 'Portuense') {
-                const dieselPlusAttuale = calcolaGiacenzaAttuale('Diesel+', data);
-                document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
-                document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
-            }
-        }
+            if (impianto === 'Casal dei Pazzi') {
+                document.getElementById('stock_diesel_casal').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_casal').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Annibaliano') {
+                document.getElementById('stock_diesel_ann').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_ann').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Portuense') {
+                const dieselPlusAttuale = calcolaGiacenzaAttuale('Diesel+', data);
+                document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
+                document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
+            }
+        }
 
-        function inviaChiusura(event, impianto) {
-            event.preventDefault();
-            const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' '); 
-            
-            if (impianto === 'Casal dei Pazzi') {
-                const cA1 = document.getElementById('c_A1_casal').value;
-                const cB1 = document.getElementById('c_B1_casal').value;
-                const rD = document.getElementById('stock_D_real_casal').value;
+        function inviaChiusura(event, impianto) {
+            event.preventDefault();
+            const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' '); 
+            
+            if (impianto === 'Casal dei Pazzi') {
+                const cA1 = document.getElementById('c_A1_casal').value;
+                const cB1 = document.getElementById('c_B1_casal').value;
+                const rD = document.getElementById('stock_D_real_casal').value;
 
-                const cA3 = document.getElementById('c_A3_casal').value;
-                const cB3 = document.getElementById('c_B3_casal').value;
-                const rB = document.getElementById('stock_B_real_casal').value;
+                const cA3 = document.getElementById('c_A3_casal').value;
+                const cB3 = document.getElementById('c_B3_casal').value;
+                const rB = document.getElementById('stock_B_real_casal').value;
 
-                if (!validaContatorePompa("Diesel", "A1", cA1)) return;
-                if (!validaContatorePompa("Diesel", "B1", cB1)) return;
-                if (!validaContatorePompa("Benzina", "A3", cA3)) return;
-                if (!validaContatorePompa("Benzina", "B3", cB3)) return;
+                if (!validaContatorePompa("Diesel", "A1", cA1)) return;
+                if (!validaContatorePompa("Diesel", "B1", cB1)) return;
+                if (!validaContatorePompa("Benzina", "A3", cA3)) return;
+                if (!validaContatorePompa("Benzina", "B3", cB3)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
-                if (!conferma) return;
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
+                if (!conferma) return;
 
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `A3: ${cA3} | B3: ${cB3}`, giacenza_reale: rB }, true);
-                event.target.reset();
-            } 
-            else if (impianto === 'Portuense') {
-                const c1 = document.getElementById('c_1_port').value; const c4 = document.getElementById('c_4_port').value;
-                const c7 = document.getElementById('c_7_port').value; const c10 = document.getElementById('c_10_port').value;
-                const rD1 = parseFloat(document.getElementById('stock_D1_real_port').value || 0);
-                const rD2 = parseFloat(document.getElementById('stock_D2_real_port').value || 0);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `A3: ${cA3} | B3: ${cB3}`, giacenza_reale: rB }, true);
+                event.target.reset();
+            } 
+            else if (impianto === 'Portuense') {
+                const c1 = document.getElementById('c_1_port').value; const c4 = document.getElementById('c_4_port').value;
+                const c7 = document.getElementById('c_7_port').value; const c10 = document.getElementById('c_10_port').value;
+                const rD1 = parseFloat(document.getElementById('stock_D1_real_port').value || 0);
+                const rD2 = parseFloat(document.getElementById('stock_D2_real_port').value || 0);
 
-                const c2 = document.getElementById('c_2_port').value; const c5 = document.getElementById('c_5_port').value;
-                const c8 = document.getElementById('c_8_port').value; const c11 = document.getElementById('c_11_port').value;
-                const rDP = document.getElementById('stock_DP_real_port').value;
+                const c2 = document.getElementById('c_2_port').value; const c5 = document.getElementById('c_5_port').value;
+                const c8 = document.getElementById('c_8_port').value; const c11 = document.getElementById('c_11_port').value;
+                const rDP = document.getElementById('stock_DP_real_port').value;
 
-                const c3 = document.getElementById('c_3_port').value; const c6 = document.getElementById('c_6_port').value;
-                const c9 = document.getElementById('c_9_port').value; const c12 = document.getElementById('c_12_port').value;
-                const rB4 = parseFloat(document.getElementById('stock_B4_real_port').value || 0);
-                const rB5 = parseFloat(document.getElementById('stock_B5_real_port').value || 0);
+                const c3 = document.getElementById('c_3_port').value; const c6 = document.getElementById('c_6_port').value;
+                const c9 = document.getElementById('c_9_port').value; const c12 = document.getElementById('c_12_port').value;
+                const rB4 = parseFloat(document.getElementById('stock_B4_real_port').value || 0);
+                const rB5 = parseFloat(document.getElementById('stock_B5_real_port').value || 0);
 
-                if (!validaContatorePompa("Diesel", "P1", c1)) return;
-                if (!validaContatorePompa("Diesel", "P4", c4)) return;
-                if (!validaContatorePompa("Diesel", "P7", c7)) return;
-                if (!validaContatorePompa("Diesel", "P10", c10)) return;
+                if (!validaContatorePompa("Diesel", "P1", c1)) return;
+                if (!validaContatorePompa("Diesel", "P4", c4)) return;
+                if (!validaContatorePompa("Diesel", "P7", c7)) return;
+                if (!validaContatorePompa("Diesel", "P10", c10)) return;
 
-                if (!validaContatorePompa("Diesel+", "P2", c2)) return;
-                if (!validaContatorePompa("Diesel+", "P5", c5)) return;
-                if (!validaContatorePompa("Diesel+", "P8", c8)) return;
-                if (!validaContatorePompa("Diesel+", "P11", c11)) return;
+                if (!validaContatorePompa("Diesel+", "P2", c2)) return;
+                if (!validaContatorePompa("Diesel+", "P5", c5)) return;
+                if (!validaContatorePompa("Diesel+", "P8", c8)) return;
+                if (!validaContatorePompa("Diesel+", "P11", c11)) return;
 
-                if (!validaContatorePompa("Benzina", "P3", c3)) return;
-                if (!validaContatorePompa("Benzina", "P6", c6)) return;
-                if (!validaContatorePompa("Benzina", "P9", c9)) return;
-                if (!validaContatorePompa("Benzina", "P12", c12)) return;
+                if (!validaContatorePompa("Benzina", "P3", c3)) return;
+                if (!validaContatorePompa("Benzina", "P6", c6)) return;
+                if (!validaContatorePompa("Benzina", "P9", c9)) return;
+                if (!validaContatorePompa("Benzina", "P12", c12)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
-                if (!conferma) return;
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
+                if (!conferma) return;
 
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel+", detalles = `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3:${c3} P6:${c6} P9:${c9} P12:${c12}`, giacenza_reale: rB4 + rB5 }, true);
-                event.target.reset();
-            }
-            else if (impianto === 'Annibaliano') {
-                const c1 = document.getElementById('c_1_ann').value; const c6 = document.getElementById('c_6_ann').value;
-                const rD = document.getElementById('stock_D_real_ann').value;
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel+", dettagli: `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3:${c3} P6:${c6} P9:${c9} P12:${c12}`, giacenza_reale: rB4 + rB5 }, true);
+                event.target.reset();
+            }
+            else if (impianto === 'Annibaliano') {
+                const c1 = document.getElementById('c_1_ann').value; const c6 = document.getElementById('c_6_ann').value;
+                const rD = document.getElementById('stock_D_real_ann').value;
 
-                const c3 = document.getElementById('c_3_ann').value; const c8 = document.getElementById('c_8_ann').value;
-                const rB = document.getElementById('stock_B_real_ann').value;
+                const c3 = document.getElementById('c_3_ann').value; const c8 = document.getElementById('c_8_ann').value;
+                const rB = document.getElementById('stock_B_real_ann').value;
 
-                if (!validaContatorePompa("Diesel", "P1", c1)) return;
-                if (!validaContatorePompa("Diesel", "P6", c6)) return;
-                if (!validaContatorePompa("Benzina", "P3", c3)) return;
-                if (!validaContatorePompa("Benzina", "P8", c8)) return;
+                if (!validaContatorePompa("Diesel", "P1", c1)) return;
+                if (!validaContatorePompa("Diesel", "P6", c6)) return;
+                if (!validaContatorePompa("Benzina", "P3", c3)) return;
+                if (!validaContatorePompa("Benzina", "P8", c8)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nDIESEL: P1:${c1} | P6:${c6} -> Reale: ${rD}L\nBENZINA: P3:${c3} | P8:${c8} -> Reale: ${rB}L\n\nInviare i dati?`);
-                if (!conferma) return;
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nDIESEL: P1:${c1} | P6:${c6} -> Reale: ${rD}L\nBENZINA: P3:${c3} | P8:${c8} -> Reale: ${rB}L\n\nInviare i dati?`);
+                if (!conferma) return;
 
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1: ${c1} | P6: ${c6}`, giacenza_reale: rD }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
-                event.target.reset();
-            }
-        }
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1: ${c1} | P6: ${c6}`, giacenza_reale: rD }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
+                event.target.reset();
+            }
+        }
 
-        function inviaCarico(event, impianto) {
-            event.preventDefault();
-            const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            let targetCisterna = ""; let litri = 0;
+        function inviaCarico(event, impianto) {
+            event.preventDefault();
+            const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            let targetCisterna = ""; let litri = 0;
 
-            if(impianto === 'Casal dei Pazzi') { targetCisterna = document.getElementById('select_cisterna_casal').value; litri = document.getElementById('litri_carico_casal').value; }
-            if(impianto === 'Portuense') { targetCisterna = document.getElementById('select_cisterna_port').value; litri = document.getElementById('litri_carico_port').value; }
-            if(impianto === 'Annibaliano') { targetCisterna = document.getElementById('select_cisterna_ann').value; litri = document.getElementById('litri_carico_ann').value; }
+            if(impianto === 'Casal dei Pazzi') { targetCisterna = document.getElementById('select_cisterna_casal').value; litri = document.getElementById('litri_carico_casal').value; }
+            if(impianto === 'Portuense') { targetCisterna = document.getElementById('select_cisterna_port').value; litri = document.getElementById('litri_carico_port').value; }
+            if(impianto === 'Annibaliano') { targetCisterna = document.getElementById('select_cisterna_ann').value; litri = document.getElementById('litri_carico_ann').value; }
 
-            const conferma = confirm(`❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità: +${litri} Litri\n\nVuoi registrare il carico?`);
-            if (!conferma) return;
+            const conferma = confirm(`❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità: +${litri} Litri\n\nVuoi registrare il carico?`);
+            if (!conferma) return;
 
-            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: `Autobotte: +${litri} L`, giacenza_reale: 0 }, true);
-            event.target.reset();
-        }
+            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: `Autobotte: +${litri} L`, giacenza_reale: 0 }, true);
+            event.target.reset();
+        }
 
-        document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
-    </script>
+        document.addEventListener("DOMContentLoaded", () => loadDatabaseData('Casal dei Pazzi'));
+    </script>
 </body>
-</html> questo è il codice ridammelo completo e modificato
+</html>

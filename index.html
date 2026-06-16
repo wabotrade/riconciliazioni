@@ -773,6 +773,51 @@
             }
         }
 
+        function sommaContatori(dettagli) {
+            const regex = /:\s*([\d.]+)/g;
+            let match;
+            let somma = 0;
+            while ((match = regex.exec(dettagli)) !== null) {
+                somma += parseFloat(match[1]);
+            }
+            return somma;
+        }
+
+        // 🛡️ FUNZIONE DI CONVALIDA INTERCETTAZIONE: CARICHI AUTOBOTTE DIMENTICATI
+        function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttualiSomma) {
+            if (!ultimiMovimentiCaricati || ultimiMovimentiCaricati.length === 0) return true;
+            
+            const idxChiusura = ultimiMovimentiCaricati.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (idxChiusura === -1) return true; 
+
+            const ultimaChiusura = ultimiMovimentiCaricati[idxChiusura];
+            const ultimaGiacenzaReale = parseFloat(ultimaChiusura.giacenza_reale || 0);
+
+            const contatoriPrecedentiSomma = sommaContatori(ultimaChiusura.dettagli);
+            const erogato = contatoriAttualiSomma - contatoriPrecedentiSomma;
+            const erogatoValido = erogato > 0 ? erogato : 0;
+
+            let totaleCarichiReg = 0;
+            for (let i = 0; i < idxChiusura; i++) {
+                if (ultimiMovimentiCaricati[i].carburante === carburante && ultimiMovimentiCaricati[i].operazione.includes("Carico")) {
+                    const matchCarico = ultimiMovimentiCaricati[i].dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || ultimiMovimentiCaricati[i].dettagli.match(/\+\s*([\d.]+)/);
+                    if (matchCarico) totaleCarichiReg += parseFloat(matchCarico[1]);
+
+                    const matchVar = ultimiMovimentiCaricati[i].dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+                    if (matchVar) totaleCarichiReg += parseFloat(matchVar[1]);
+                }
+            }
+
+            const giacenzaTeoricaMassima = ultimaGiacenzaReale + totaleCarichiReg - erogatoValido;
+
+            // Se la giacenza reale inserita supera di oltre 150 litri il teorico massimo stimabile, blocchiamo l'invio
+            if (litriImmessiReali > (giacenzaTeoricaMassima + 150)) {
+                alert(`🚨 BLOCCO DI SICUREZZA — SCARICO DIMENTICATO?\n\nLa Giacenza Reale inserita (${litriImmessiReali} L) supera nettamente la giacenza teorica massima stimata (${giacenzaTeoricaMassima.toFixed(1)} L).\n\nHai probabilmente dimenticato di inserire e inviare il modulo "Registra Scarico Autobotte" prima di questa chiusura.\n\nRegistra prima il carico o correggi i litri effettivi della giacenza reale.`);
+                return false;
+            }
+            return true;
+        }
+
         function inviaChiusura(event, impianto) {
             event.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' '); 
@@ -790,6 +835,10 @@
                 if (!validaContatorePompa("Diesel", "B1", cB1)) return;
                 if (!validaContatorePompa("Benzina", "A3", cA3)) return;
                 if (!validaContatorePompa("Benzina", "B3", cB3)) return;
+
+                // Controllo preventivo carichi dimenticati
+                if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(cA1 || 0) + parseFloat(cB1 || 0))) return;
+                if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(cA3 || 0) + parseFloat(cB3 || 0))) return;
 
                 const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
                 if (!conferma) return;
@@ -828,6 +877,16 @@
                 if (!validaContatorePompa("Benzina", "P9", c9)) return;
                 if (!validaContatorePompa("Benzina", "P12", c12)) return;
 
+                // Calcolo somme contatori correnti per Portuense
+                const totDieselCont = parseFloat(c1 || 0) + parseFloat(c4 || 0) + parseFloat(c7 || 0) + parseFloat(c10 || 0);
+                const totDieselPlusCont = parseFloat(c2 || 0) + parseFloat(c5 || 0) + parseFloat(c8 || 0) + parseFloat(c11 || 0);
+                const totBenzinaCont = parseFloat(c3 || 0) + parseFloat(c6 || 0) + parseFloat(c9 || 0) + parseFloat(c12 || 0);
+
+                // Controllo preventivo carichi dimenticati per Portuense
+                if (!verificaCaricoDimenticato("Diesel", rD1 + rD2, totDieselCont)) return;
+                if (!verificaCaricoDimenticato("Diesel+", parseFloat(rDP || 0), totDieselPlusCont)) return;
+                if (!verificaCaricoDimenticato("Benzina", rB4 + rB5, totBenzinaCont)) return;
+
                 const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
                 if (!conferma) return;
 
@@ -847,6 +906,10 @@
                 if (!validaContatorePompa("Diesel", "P6", c6)) return;
                 if (!validaContatorePompa("Benzina", "P3", c3)) return;
                 if (!validaContatorePompa("Benzina", "P8", c8)) return;
+
+                // Controllo preventivo carichi dimenticati per Annibaliano
+                if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(c1 || 0) + parseFloat(c6 || 0))) return;
+                if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(c3 || 0) + parseFloat(c8 || 0))) return;
 
                 const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nDIESEL: P1:${c1} | P6:${c6} -> Reale: ${rD}L\nBENZINA: P3:${c3} | P8:${c8} -> Reale: ${rB}L\n\nInviare i dati?`);
                 if (!conferma) return;
@@ -888,10 +951,10 @@
             const conferma = confirm(msgConferma);
             if (!conferma) return;
 
-            let dettagliTesto = `Autobotte: +${litri} L`;
-            if (varViaggio) dettagliTesto += ` | Cali/Eccedenze viaggio: ${varViaggio} L`;
+            let detallesTesto = `Autobotte: +${litri} L`;
+            if (varViaggio) detallesTesto += ` | Cali/Eccedenze viaggio: ${varViaggio} L`;
 
-            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: dettagliTesto, giacenza_reale: 0 }, true);
+            inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Carico Cisterna", carburante: targetCisterna, dettagli: detallesTesto, giacenza_reale: 0 }, true);
             event.target.reset();
             if(prefix) document.getElementById(`container_var_${prefix}`).style.display = 'none';
         }

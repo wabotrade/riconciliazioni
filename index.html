@@ -466,7 +466,7 @@
                     btn.innerText = "🔓 Modalità Admin Attiva";
                     alert("🔓 Accesso autorizzato. Pannello consultazione sbloccato in alto.");
                 } else {
-                    alert("🚨 PIN inserito errato! Autorizzazione negata.");
+                    alert("🚨 PIN inserito errato! Riprova.");
                 }
             }
         }
@@ -513,12 +513,23 @@
                 let totSfrido = 0;
                 let totVarViaggio = 0;
 
+                // 📐 CALCOLO EROGATO INTELLIGENTE BASATO SUI CONTATORI EFFETTIVI DEL PERIODO FILTRATO
+                const chiusurePeriodo = data.filter(r => r.operazione === "Chiusura Contatori").sort((a,b) => new Date(a.data_ora) - new Date(b.data_ora));
+                if (chiusurePeriodo.length >= 2) {
+                    const contatoriIniziali = sommaContatori(chiusurePeriodo[0].dettagli);
+                    const contatoriFinali = sommaContatori(chiusurePeriodo[chiusurePeriodo.length - 1].dettagli);
+                    totErogato = contatoriFinali - contatoriIniziali;
+                } else if (chiusurePeriodo.length === 1) {
+                    totErogato = parseFloat(chiusurePeriodo[0].erogato || 0);
+                } else {
+                    totErogato = 0;
+                }
+
                 data.forEach(row => {
                     const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
                     let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
                     if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
 
-                    totErogato += parseFloat(row.erogato || 0);
                     totSfrido += parseFloat(row.sfrido || 0);
                     
                     if (row.operazione === "Carico Cisterna") {
@@ -644,6 +655,7 @@
             return true;
         }
 
+        functionBox = eliminaRecord;
         function eliminaRecord(id, impianto) {
             if (!isAdminMode) {
                 alert("Azione non autorizzata. Sblocca prima la Modalità Admin con il lucchetto in alto.");

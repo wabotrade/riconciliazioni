@@ -7,7 +7,7 @@
     <style>
         :root { 
             --diesel-color: #343a40; --diesel-plus-color: #0056b3; --benzina-color: #28a745; 
-            --casal-color: #6f42c1; --port-color: #e67e22; --ann-color: #007bff;
+            --casal-color: #6f42c1; --port-color: #e67e22; --ann-color: #007bff; --giust-color: #e74c3c;
             --background-color: #f4f6f9; --card-color: #ffffff; --text-color: #212529; --border-color: #dee2e6; 
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -66,6 +66,7 @@
         .tab-btn.active[data-target="casal"] { color: var(--casal-color); border-bottom-color: var(--casal-color); }
         .tab-btn.active[data-target="portuense"] { color: var(--port-color); border-bottom-color: var(--port-color); }
         .tab-btn.active[data-target="annibaliano"] { color: var(--ann-color); border-bottom-color: var(--ann-color); }
+        .tab-btn.active[data-target="giustiniana"] { color: var(--giust-color); border-bottom-color: var(--giust-color); }
 
         .tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
@@ -99,6 +100,7 @@
         .btn-casal { background-color: var(--casal-color); }
         .btn-port { background-color: var(--port-color); }
         .btn-ann { background-color: var(--ann-color); }
+        .btn-giust { background-color: var(--giust-color); }
         .btn-acquisto { background-color: #28a745; }
 
         .tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
@@ -142,34 +144,27 @@
                 font-size: 0.9rem;
             }
             
-            #tbl_diesel_casal td:nth-of-type(1)::before,
-            #tbl_benzina_casal td:nth-of-type(1)::before,
-            #tbl_diesel_ann td:nth-of-type(1)::before,
-            #tbl_benzina_ann td:nth-of-type(1)::before,
-            #tbl_generale_port td:nth-of-type(1)::before,
-            #tbl_risultati_query td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
+            #tbl_diesel_casal td:nth-of-type(1)::before, #tbl_benzina_casal td:nth-of-type(1)::before,
+            #tbl_diesel_ann td:nth-of-type(1)::before, #tbl_benzina_ann td:nth-of-type(1)::before,
+            #tbl_diesel_giust td:nth-of-type(1)::before, #tbl_benzina_giust td:nth-of-type(1)::before,
+            #tbl_generale_port td:nth-of-type(1)::before, #tbl_risultati_query td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
             
-            #tbl_diesel_casal td:nth-of-type(2)::before,
-            #tbl_benzina_casal td:nth-of-type(2)::before,
-            #tbl_diesel_ann td:nth-of-type(2)::before,
-            #tbl_benzina_ann td:nth-of-type(2)::before,
+            #tbl_diesel_casal td:nth-of-type(2)::before, #tbl_benzina_casal td:nth-of-type(2)::before,
+            #tbl_diesel_ann td:nth-of-type(2)::before, #tbl_benzina_ann td:nth-of-type(2)::before,
+            #tbl_diesel_giust td:nth-of-type(2)::before, #tbl_benzina_giust td:nth-of-type(2)::before,
             #tbl_risultati_query td:nth-of-type(2)::before { content: "⚙️ Tipo Record"; font-weight: bold; color: #6c757d; }
             
             #tbl_generale_port td:nth-of-type(2)::before { content: "⛽ Carburante"; font-weight: bold; color: #6c757d; }
 
-            #tbl_diesel_casal td:nth-of-type(3)::before,
-            #tbl_benzina_casal td:nth-of-type(3)::before,
-            #tbl_diesel_ann td:nth-of-type(3)::before,
-            #tbl_benzina_ann td:nth-of-type(3)::before,
-            #tbl_generale_port td:nth-of-type(3)::before,
-            #tbl_risultati_query td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
+            #tbl_diesel_casal td:nth-of-type(3)::before, #tbl_benzina_casal td:nth-of-type(3)::before,
+            #tbl_diesel_ann td:nth-of-type(3)::before, #tbl_benzina_ann td:nth-of-type(3)::before,
+            #tbl_diesel_giust td:nth-of-type(3)::before, #tbl_benzina_giust td:nth-of-type(3)::before,
+            #tbl_generale_port td:nth-of-type(3)::before, #tbl_risultati_query td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
 
-            #tbl_diesel_casal td:nth-of-type(4)::before,
-            #tbl_benzina_casal td:nth-of-type(4)::before,
-            #tbl_diesel_ann td:nth-of-type(4)::before,
-            #tbl_benzina_ann td:nth-of-type(4)::before,
-            #tbl_generale_port td:nth-of-type(4)::before,
-            #tbl_risultati_query td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
+            #tbl_diesel_casal td:nth-of-type(4)::before, #tbl_benzina_casal td:nth-of-type(4)::before,
+            #tbl_diesel_ann td:nth-of-type(4)::before, #tbl_benzina_ann td:nth-of-type(4)::before,
+            #tbl_diesel_giust td:nth-of-type(4)::before, #tbl_benzina_giust td:nth-of-type(4)::before,
+            #tbl_generale_port td:nth-of-type(4)::before, #tbl_risultati_query td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
 
             td:nth-of-type(5) { 
                 display: none; 
@@ -195,7 +190,7 @@
         <div class="inputs-flex">
             <div class="form-group">
                 <label>Impianto</label>
-                <select id="q_impianto"><option value="">Tutti gli impianti</option><option value="Casal dei Pazzi">Casal dei Pazzi</option><option value="Portuense">Portuense</option><option value="Annibaliano">Annibaliano</option></select>
+                <select id="q_impianto"><option value="">Tutti gli impianti</option><option value="Casal dei Pazzi">Casal dei Pazzi</option><option value="Portuense">Portuense</option><option value="Annibaliano">Annibaliano</option><option value="Giustiniana">Giustiniana</option></select>
             </div>
             <div class="form-group">
                 <label>Carburante</label>
@@ -235,6 +230,7 @@
         <button class="tab-btn" data-target="casal">🟣 Casal dei Pazzi</button>
         <button class="tab-btn" data-target="portuense">🟠 Portuense</button>
         <button class="tab-btn" data-target="annibaliano">🔵 Annibaliano</button>
+        <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
     <!-- CASAL DEI PAZZI -->
@@ -272,7 +268,6 @@
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_casal"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_casal" step="0.1" required></div>
                     
-                    <!-- Campo Variazione Viaggio Casal (Dinamico) -->
                     <div class="form-group" id="container_var_casal" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_casal" step="0.1" placeholder="Es: -15 o +5">
@@ -349,7 +344,6 @@
                     </div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_port" step="0.1" required></div>
                     
-                    <!-- Campo Variazione Viaggio Portuense (Dinamico) -->
                     <div class="form-group" id="container_var_port" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_port" step="0.1" placeholder="Es: -15 o +5">
@@ -408,7 +402,6 @@
                     <div class="form-group"><label>Destinazione</label><select id="select_cisterna_ann"><option value="Diesel">Cisterna Diesel</option><option value="Benzina">Cisterna Benzina</option></select></div>
                     <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_ann" step="0.1" required></div>
                     
-                    <!-- Campo Variazione Viaggio Annibaliano (Dinamico) -->
                     <div class="form-group" id="container_var_ann" style="display: none;">
                         <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
                         <input type="number" id="var_viaggio_ann" step="0.1" placeholder="Es: -15 o +5">
@@ -424,6 +417,67 @@
         <div class="tables-flex-container">
             <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
             <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_ann"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+        </div>
+    </div>
+
+    <!-- 🔴 IMPIANTO GIUSTINIANA -->
+    <div id="giustiniana" class="tab-content">
+        <header>
+            <h1>⛽ Registro Chiusure - Giustiniana</h1>
+            <p>Database SQL Sincronizzato con Calcolo Vendite ed Incassi</p>
+        </header>
+        <div class="cisterne-grid">
+            <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA 1: DIESEL</h3><div class="stock-display" id="stock_diesel_giust">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: T3-1, T4-1</div></div>
+            <div class="cisterna-card cisterna-benzina"><h3>🟢 CISTERNA 3: BENZINA</h3><div class="stock-display" id="stock_benzina_giust">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: T3-3, T4-3</div></div>
+        </div>
+        <div class="card">
+            <h2>1. Inserimento Letture Chiusura e Prezzi di Vendita</h2>
+            <form onsubmit="inviaChiusura(event, 'Giustiniana')">
+                <div class="section-title-diesel">LINEA DIESEL (CISTERNA 1)</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa T3-1</label><input type="number" id="c_T31_giust" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa T4-1</label><input type="number" id="c_T41_giust" step="0.1" required></div>
+                    <div class="form-group"><label>Prezzo di Vendita Diesel (€/L)</label><input type="number" id="price_D_giust" step="0.001" placeholder="Es: 1.749" required></div>
+                    <div class="form-group"><label>Giacenza REALE Diesel</label><input type="number" id="stock_D_real_giust" step="0.1" required></div>
+                </div>
+                <div class="section-title-benzina">LINEA BENZINA (CISTERNA 3)</div>
+                <div class="inputs-flex">
+                    <div class="form-group"><label>Contatore Pompa T3-3</label><input type="number" id="c_T33_giust" step="0.1" required></div>
+                    <div class="form-group"><label>Contatore Pompa T4-3</label><input type="number" id="c_T43_giust" step="0.1" required></div>
+                    <div class="form-group"><label>Prezzo di Vendita Benzina (€/L)</label><input type="number" id="price_B_giust" step="0.001" placeholder="Es: 1.829" required></div>
+                    <div class="form-group"><label>Giacenza REALE Benzina</label><input type="number" id="stock_B_real_giust" step="0.1" required></div>
+                </div>
+                <button type="submit" class="btn-giust">📊 Invia Chiusura e Calcola Vendite (SQL)</button>
+            </form>
+        </div>
+        <div class="card">
+            <h2>2. Registra Scarico Autobotte</h2>
+            <form onsubmit="inviaCarico(event, 'Giustiniana')">
+                <div class="inputs-flex">
+                    <div class="form-group">
+                        <label>Destinazione</label>
+                        <select id="select_cisterna_giust">
+                            <option value="Diesel">Cisterna 1 (Diesel)</option>
+                            <option value="Benzina">Cisterna 3 (Benzina)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Litri Introdotti</label><input type="number" id="litri_carico_giust" step="0.1" required></div>
+                    
+                    <div class="form-group" id="container_var_giust" style="display: none;">
+                        <label style="color:#e67e22;">⚠️ Cali (-) / Eccedenze (+) viaggio (L)</label>
+                        <input type="number" id="var_viaggio_giust" step="0.1" placeholder="Es: -15 o +5">
+                    </div>
+                    <div class="form-group" style="justify-content: center; align-items: center;">
+                        <span style="color: #007bff; font-size: 0.85rem; cursor: pointer; text-decoration: underline;" onclick="toggleVariazione('giust')">⚠️ Segnala calo/eccedenza viaggio</span>
+                    </div>
+
+                    <div class="form-group"><button type="submit" class="btn-acquisto">🚚 Registra Carico</button></div>
+                </div>
+            </form>
+        </div>
+        <div class="tables-flex-container">
+            <div class="table-section table-section-diesel"><h2>📋 Storico Diesel</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_diesel_giust"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
+            <div class="table-section table-section-benzina"><h2>📋 Storico Benzina</h2><div class="table-responsive"><table><thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead><tbody id="tbl_benzina_giust"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody></table></div></div>
         </div>
     </div>
 
@@ -574,7 +628,7 @@
                 const targetId = button.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
 
-                let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : 'Annibaliano');
+                let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : (targetId === 'annibaliano' ? 'Annibaliano' : 'Giustiniana'));
                 loadDatabaseData(nomeImpianto);
             });
         });
@@ -621,6 +675,8 @@
                     riempiTabellaUnica(data, 'tbl_generale_port', impianto);
                 } else if (impianto === 'Annibaliano') {
                     riempiTabellaSdoppiata(data, 'tbl_diesel_ann', 'tbl_benzina_ann', impianto);
+                } else if (impianto === 'Giustiniana') {
+                    riempiTabellaSdoppiata(data, 'tbl_diesel_giust', 'tbl_benzina_giust', impianto);
                 }
             })
             .catch(err => console.error("Errore di comunicazione GET:", err));
@@ -655,7 +711,6 @@
             return true;
         }
 
-        functionBox = eliminaRecord;
         function eliminaRecord(id, impianto) {
             if (!isAdminMode) {
                 alert("Azione non autorizzata. Sblocca prima la Modalità Admin con il lucchetto in alto.");
@@ -782,6 +837,9 @@
                 document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
                 document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
                 document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Giustiniana') {
+                document.getElementById('stock_diesel_giust').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_giust').innerText = `${benzinaAttuale} L`;
             }
         }
 
@@ -822,7 +880,6 @@
 
             const giacenzaTeoricaMassima = ultimaGiacenzaReale + totaleCarichiReg - erogatoValido;
 
-            // Se la giacenza reale inserita supera di oltre 150 litri il teorico massimo stimabile, blocchiamo l'invio
             if (litriImmessiReali > (giacenzaTeoricaMassima + 150)) {
                 alert(`🚨 BLOCCO DI SICUREZZA — SCARICO DIMENTICATO?\n\nLa Giacenza Reale inserita (${litriImmessiReali} L) supera nettamente la giacenza teorica massima stimata (${giacenzaTeoricaMassima.toFixed(1)} L).\n\nHai probabilmente dimenticato di inserire e inviare il modulo "Registra Scarico Autobotte" prima di questa chiusura.\n\nRegistra prima il carico o correggi i litri effettivi della giacenza reale.`);
                 return false;
@@ -838,7 +895,6 @@
                 const cA1 = document.getElementById('c_A1_casal').value;
                 const cB1 = document.getElementById('c_B1_casal').value;
                 const rD = document.getElementById('stock_D_real_casal').value;
-
                 const cA3 = document.getElementById('c_A3_casal').value;
                 const cB3 = document.getElementById('c_B3_casal').value;
                 const rB = document.getElementById('stock_B_real_casal').value;
@@ -848,11 +904,10 @@
                 if (!validaContatorePompa("Benzina", "A3", cA3)) return;
                 if (!validaContatorePompa("Benzina", "B3", cB3)) return;
 
-                // Controllo preventivo carichi dimenticati
                 if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(cA1 || 0) + parseFloat(cB1 || 0))) return;
                 if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(cA3 || 0) + parseFloat(cB3 || 0))) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nDIESEL: A1:${cA1} | B1:${cB1} -> Reale: ${rD}L\nBENZINA: A3:${cA3} | B3:${cB3} -> Reale: ${rB}L\n\nSalvare nel database?`);
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - CASAL DEI PAZZI\n\nSalvare nel database?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }, false);
@@ -864,11 +919,9 @@
                 const c7 = document.getElementById('c_7_port').value; const c10 = document.getElementById('c_10_port').value;
                 const rD1 = parseFloat(document.getElementById('stock_D1_real_port').value || 0);
                 const rD2 = parseFloat(document.getElementById('stock_D2_real_port').value || 0);
-
                 const c2 = document.getElementById('c_2_port').value; const c5 = document.getElementById('c_5_port').value;
                 const c8 = document.getElementById('c_8_port').value; const c11 = document.getElementById('c_11_port').value;
                 const rDP = document.getElementById('stock_DP_real_port').value;
-
                 const c3 = document.getElementById('c_3_port').value; const c6 = document.getElementById('c_6_port').value;
                 const c9 = document.getElementById('c_9_port').value; const c12 = document.getElementById('c_12_port').value;
                 const rB4 = parseFloat(document.getElementById('stock_B4_real_port').value || 0);
@@ -878,28 +931,24 @@
                 if (!validaContatorePompa("Diesel", "P4", c4)) return;
                 if (!validaContatorePompa("Diesel", "P7", c7)) return;
                 if (!validaContatorePompa("Diesel", "P10", c10)) return;
-
                 if (!validaContatorePompa("Diesel+", "P2", c2)) return;
                 if (!validaContatorePompa("Diesel+", "P5", c5)) return;
                 if (!validaContatorePompa("Diesel+", "P8", c8)) return;
                 if (!validaContatorePompa("Diesel+", "P11", c11)) return;
-
                 if (!validaContatorePompa("Benzina", "P3", c3)) return;
                 if (!validaContatorePompa("Benzina", "P6", c6)) return;
                 if (!validaContatorePompa("Benzina", "P9", c9)) return;
                 if (!validaContatorePompa("Benzina", "P12", c12)) return;
 
-                // Calcolo somme contatori correnti per Portuense
                 const totDieselCont = parseFloat(c1 || 0) + parseFloat(c4 || 0) + parseFloat(c7 || 0) + parseFloat(c10 || 0);
                 const totDieselPlusCont = parseFloat(c2 || 0) + parseFloat(c5 || 0) + parseFloat(c8 || 0) + parseFloat(c11 || 0);
                 const totBenzinaCont = parseFloat(c3 || 0) + parseFloat(c6 || 0) + parseFloat(c9 || 0) + parseFloat(c12 || 0);
 
-                // Controllo preventivo carichi dimenticati per Portuense
                 if (!verificaCaricoDimenticato("Diesel", rD1 + rD2, totDieselCont)) return;
                 if (!verificaCaricoDimenticato("Diesel+", parseFloat(rDP || 0), totDieselPlusCont)) return;
                 if (!verificaCaricoDimenticato("Benzina", rB4 + rB5, totBenzinaCont)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nSalvare i dati?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);
@@ -910,7 +959,6 @@
             else if (impianto === 'Annibaliano') {
                 const c1 = document.getElementById('c_1_ann').value; const c6 = document.getElementById('c_6_ann').value;
                 const rD = document.getElementById('stock_D_real_ann').value;
-
                 const c3 = document.getElementById('c_3_ann').value; const c8 = document.getElementById('c_8_ann').value;
                 const rB = document.getElementById('stock_B_real_ann').value;
 
@@ -919,15 +967,55 @@
                 if (!validaContatorePompa("Benzina", "P3", c3)) return;
                 if (!validaContatorePompa("Benzina", "P8", c8)) return;
 
-                // Controllo preventivo carichi dimenticati per Annibaliano
                 if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(c1 || 0) + parseFloat(c6 || 0))) return;
                 if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(c3 || 0) + parseFloat(c8 || 0))) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nDIESEL: P1:${c1} | P6:${c6} -> Reale: ${rD}L\nBENZINA: P3:${c3} | P8:${c8} -> Reale: ${rB}L\n\nInviare i dati?`);
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - ANNIBALIANO\n\nSalvare i dati?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1: ${c1} | P6: ${c6}`, giacenza_reale: rD }, false);
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
+                event.target.reset();
+            }
+            else if (impianto === 'Giustiniana') {
+                const c_T31 = document.getElementById('c_T31_giust').value;
+                const c_T41 = document.getElementById('c_T41_giust').value;
+                const price_D = document.getElementById('price_D_giust').value;
+                const rD = document.getElementById('stock_D_real_giust').value;
+
+                const c_T33 = document.getElementById('c_T33_giust').value;
+                const c_T43 = document.getElementById('c_T43_giust').value;
+                const price_B = document.getElementById('price_B_giust').value;
+                const rB = document.getElementById('stock_B_real_giust').value;
+
+                if (!validaContatorePompa("Diesel", "T3-1", c_T31)) return;
+                if (!validaContatorePompa("Diesel", "T4-1", c_T41)) return;
+                if (!validaContatorePompa("Benzina", "T3-3", c_T33)) return;
+                if (!validaContatorePompa("Benzina", "T4-3", c_T43)) return;
+
+                if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(c_T31 || 0) + parseFloat(c_T41 || 0))) return;
+                if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(c_T33 || 0) + parseFloat(c_T43 || 0))) return;
+
+                const lastD = ultimiMovimentiCaricati.find(r => r.carburante === 'Diesel' && r.operazione.includes("Chiusura"));
+                let prevD = lastD ? sommaContatori(lastD.dettagli) : (parseFloat(c_T31) + parseFloat(c_T41));
+                let erogD = (parseFloat(c_T31) + parseFloat(c_T41)) - prevD;
+                if (erogD < 0) erogD = 0;
+                let totD = erogD * parseFloat(price_D || 0);
+
+                const lastB = ultimiMovimentiCaricati.find(r => r.carburante === 'Benzina' && r.operazione.includes("Chiusura"));
+                let prevB = lastB ? sommaContatori(lastB.dettagli) : (parseFloat(c_T33) + parseFloat(c_T43));
+                let erogB = (parseFloat(c_T33) + parseFloat(c_T43)) - prevB;
+                if (erogB < 0) erogB = 0;
+                let totB = erogB * parseFloat(price_B || 0);
+
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - GIUSTINIANA\n\nDIESEL venduto stimato: ${erogD.toFixed(1)} L (Incasso € ${totD.toFixed(2)})\nBENZINA venduta stimata: ${erogB.toFixed(1)} L (Incasso € ${totB.toFixed(2)})\n\nSalvare nel database?`);
+                if (!conferma) return;
+
+                let dettagliD = `T3-1: ${c_T31} | T4-1: ${c_T41} - Prezzo vda ${price_D} €/L - Erogato ${erogD.toFixed(1)} L - Totale € ${totD.toFixed(2)}`;
+                let dettagliB = `T3-3: ${c_T33} | T4-3: ${c_T43} - Prezzo vda ${price_B} €/L - Erogato ${erogB.toFixed(1)} L - Totale € ${totB.toFixed(2)}`;
+
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: dettagliD, giacenza_reale: rD }, false);
+                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: dettagliB, giacenza_reale: rB }, true);
                 event.target.reset();
             }
         }
@@ -938,22 +1026,20 @@
             let targetCisterna = ""; let litri = 0; let varViaggio = ""; let prefix = "";
 
             if(impianto === 'Casal dei Pazzi') { 
-                prefix = 'casal';
-                targetCisterna = document.getElementById('select_cisterna_casal').value; 
-                litri = document.getElementById('litri_carico_casal').value; 
-                varViaggio = document.getElementById('var_viaggio_casal').value;
+                prefix = 'casal'; targetCisterna = document.getElementById('select_cisterna_casal').value; 
+                litri = document.getElementById('litri_carico_casal').value; varViaggio = document.getElementById('var_viaggio_casal').value;
             }
             if(impianto === 'Portuense') { 
-                prefix = 'port';
-                targetCisterna = document.getElementById('select_cisterna_port').value; 
-                litri = document.getElementById('litri_carico_port').value; 
-                varViaggio = document.getElementById('var_viaggio_port').value;
+                prefix = 'port'; targetCisterna = document.getElementById('select_cisterna_port').value; 
+                litri = document.getElementById('litri_carico_port').value; varViaggio = document.getElementById('var_viaggio_port').value;
             }
             if(impianto === 'Annibaliano') { 
-                prefix = 'ann';
-                targetCisterna = document.getElementById('select_cisterna_ann').value; 
-                litri = document.getElementById('litri_carico_ann').value; 
-                varViaggio = document.getElementById('var_viaggio_ann').value;
+                prefix = 'ann'; targetCisterna = document.getElementById('select_cisterna_ann').value; 
+                litri = document.getElementById('litri_carico_ann').value; varViaggio = document.getElementById('var_viaggio_ann').value;
+            }
+            if(impianto === 'Giustiniana') { 
+                prefix = 'giust'; targetCisterna = document.getElementById('select_cisterna_giust').value; 
+                litri = document.getElementById('litri_carico_giust').value; varViaggio = document.getElementById('var_viaggio_giust').value;
             }
 
             let msgConferma = `❓ CONFERMA SCARICO AUTOBOTTE\n\nImpianto: ${impianto}\nCarburante: ${targetCisterna}\nQuantità immessa in cisterna: +${litri} Litri`;
@@ -991,24 +1077,23 @@
                     targetTab = "portuense"; nomeImpianto = "Portuense"; authorized = true;
                 } else if (enteredPin === "9797") {
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
-                } else if (enteredPin === "9999") { // Master Admin generale per vederli tutti
+                } else if (enteredPin === "4545") {
+                    targetTab = "giustiniana"; nomeImpianto = "Giustiniana"; authorized = true;
+                } else if (enteredPin === "9999") { 
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
                 } else {
                     alert("🚨 PIN inserito errato! Riprova.");
                 }
             }
 
-            // Sblocca la visualizzazione della pagina
             document.body.style.display = 'block';
 
-            // Se l'accesso NON è l'amministratore supremo (9999), nascondiamo le altre schede
             if (enteredPin !== "9999") {
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     if (btn.getAttribute('data-target') !== targetTab) {
                         btn.style.display = 'none';
                     }
                 });
-                // Blocca anche la selezione del report admin solo sulla propria sede
                 const qImpiantoSelect = document.getElementById('q_impianto');
                 if (qImpiantoSelect) {
                     qImpiantoSelect.value = nomeImpianto;
@@ -1016,7 +1101,6 @@
                 }
             }
 
-            // Attiva graficamente la scheda corretta
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -1025,7 +1109,6 @@
             const activeContent = document.getElementById(targetTab);
             if (activeContent) activeContent.classList.add('active');
 
-            // Avvia il caricamento iniziale dei dati SQL
             loadDatabaseData(nomeImpianto);
         });
     </script>

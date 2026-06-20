@@ -880,7 +880,7 @@
 
             const giacenzaTeoricaMassima = ultimaGiacenzaReale + totaleCarichiReg - erogatoValido;
 
-            if (litriImmessiReali > (giacenzaTeoricaMassima + 150)) {
+            if (litriImmessiReali > (giacenzaTeoricaMassima + 200)) {
                 alert(`🚨 BLOCCO DI SICUREZZA — SCARICO DIMENTICATO?\n\nLa Giacenza Reale inserita (${litriImmessiReali} L) supera nettamente la giacenza teorica massima stimata (${giacenzaTeoricaMassima.toFixed(1)} L).\n\nHai probabilmente dimenticato di inserire e inviare il modulo "Registra Scarico Autobotte" prima di questa chiusura.\n\nRegistra prima il carico o correggi i litri effettivi della giacenza reale.`);
                 return false;
             }

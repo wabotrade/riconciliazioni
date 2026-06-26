@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 const dbConfig = {
     host: '127.0.0.1', 
     user: 'u404268549_ricon',
-    password: process.env.DB_PASSWORD || 'Mdz7XD^3', 
+    password: process.env.DB_PASSWORD || 'Mdz7tsXD^3', 
     database: 'u404268549_ricon'
 };
 

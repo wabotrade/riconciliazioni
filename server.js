@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 const dbConfig = {
     host: '127.0.0.1', 
     user: 'u404268549_ricon',
-    password: process.env.DB_PASSWORD || 'Mdz7tsXD^3', 
+    password: process.env.DB_PASSWORD || 'Mdz7XD^3', 
     database: 'u404268549_ricon'
 };
 
@@ -37,11 +37,9 @@ function sommaContatori(dettagli) {
 }
 
 function estraiLitriCarico(dettagli) {
-    // 1. Estrae il carico principale dell'autobotte (es: Autobotte: +4000 L o il vecchio +4000 L)
     const matchCarico = dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || dettagli.match(/\+\s*([\d.]+)/);
     let totaleNetto = matchCarico ? parseFloat(matchCarico[1]) : 0;
 
-    // 2. Estrae la variazione di viaggio se esiste (es: -15 o +5) e la applica algebricamente
     const matchVar = dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
     if (matchVar) {
         totaleNetto += parseFloat(matchVar[1]);
@@ -176,6 +174,31 @@ app.delete('/api/movimenti/:id', async (req, res) => {
 
     } catch (error) {
         console.error("Errore cancellazione record:", error);
+        res.status(500).json({ success: false, error: "Errore interno del server" });
+    }
+});
+
+// 🚨 6. [PUT] Modifica analitica di un record esistente (Pannello Admin)
+app.put('/api/movimenti/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { pin, operazione, carburante, dettagli, giacenza_reale, erogato, giacenza_teorica, sfrido } = req.body;
+
+        if (pin !== ADMIN_PIN) {
+            return res.status(403).json({ success: false, error: "PIN di sicurezza errato! Autorizzazione negata." });
+        }
+
+        const query = `
+            UPDATE movimenti 
+            SET operazione = ?, carburante = ?, dettagli = ?, giacenza_reale = ?, erogato = ?, giacenza_teorica = ?, sfrido = ?
+            WHERE id = ?
+        `;
+        const values = [operazione, carburante, dettagli, giacenza_reale, erogato, giacenza_teorica, sfrido, id];
+        await pool.execute(query, values);
+
+        res.status(200).json({ success: true, message: "Record modificato correttamente nel database." });
+    } catch (error) {
+        console.error("Errore durante la modifica del record SQL:", error);
         res.status(500).json({ success: false, error: "Errore interno del server" });
     }
 });

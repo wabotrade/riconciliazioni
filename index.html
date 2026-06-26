@@ -121,6 +121,10 @@
         .btn-elimina { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0; }
         .btn-elimina:hover { background: #bd2130; }
 
+        /* ✏️ STILE BOTTONE MODIFICA ADMIN */
+        .btn-modifica { background: #e67e22; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0 5px 0 0; }
+        .btn-modifica:hover { background: #d35400; }
+
         /* Mobile Layout */
         @media (max-width: 767px) {
             table, thead, tbody, th, td, tr { display: block; width: 100%; }
@@ -172,7 +176,7 @@
                 padding-top: 12px !important; 
                 justify-content: center; 
             }
-            body.admin-mode-active td:nth-of-type(5) { display: flex; }
+            body.admin-mode-active td:nth-of-type(5) { display: flex; gap: 5px; justify-content: center; }
         }
 
         .btn-elimina { display: none; }
@@ -233,7 +237,6 @@
         <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
-    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -286,7 +289,6 @@
         </div>
     </div>
 
-    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -367,7 +369,6 @@
         </div>
     </div>
 
-    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -420,7 +421,6 @@
         </div>
     </div>
 
-    <!-- 🔴 IMPIANTO GIUSTINIANA -->
     <div id="giustiniana" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Giustiniana</h1>
@@ -483,6 +483,7 @@
 
     <script>
         let ultimiMovimentiCaricati = [];
+        let risultatiQueryAdmin = [];
         let isAdminMode = false; 
         let adminPin = "";       
 
@@ -550,6 +551,7 @@
                 }
 
                 const data = response.data;
+                risultatiQueryAdmin = data;
                 const tbody = document.getElementById('tbl_risultati_query');
                 tbody.innerHTML = '';
 
@@ -600,6 +602,7 @@
                         sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
                     }
 
+                    const bottoneModifica = `<button class="btn-modifica" onclick="modificaRecord(${row.id}, '${row.impianto}')">✏️ Modifica</button>`;
                     const bottoneElimina = `<button class="btn-elimina" style="display:inline-block;" onclick="eliminaRecord(${row.id}, '${row.impianto}')">🗑️ Elimina</button>`;
 
                     tbody.innerHTML += `<tr>
@@ -607,7 +610,7 @@
                         <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
                         <td>${row.dettagli}</td>
                         <td>${sfridoTesto}</td>
-                        <td>${bottoneElimina}</td>
+                        <td>${bottoneModifica}${bottoneElimina}</td>
                     </tr>`;
                 });
 
@@ -684,7 +687,7 @@
 
         function estraiContatorePrecedente(dettagli, nomePompa) {
             const regex = new RegExp(`${nomePompa}\\s*:\\s*([\\d.]+)`);
-            const match = detalles = dettagli.match(regex); // Mantenuto refuso originale per coerenza
+            const match = detalles = dettagli.match(regex);
             return match ? parseFloat(match[1]) : null;
         }
 
@@ -709,6 +712,59 @@
             }
 
             return true;
+        }
+
+        function modificaRecord(id, impianto) {
+            if (!isAdminMode) {
+                alert("Azione non autorizzata. Sblocca prima la Modalità Admin con il lucchetto in alto.");
+                return;
+            }
+            const row = risultatiQueryAdmin.find(r => r.id === id);
+            if (!row) return;
+
+            const nuovaOp = prompt("✏️ MODIFICA TIPO OPERAZIONE:\n(Chiusura Contatori oppure Carico Cisterna)", row.operazione);
+            if (nuovaOp === null) return;
+            const nuovoCarb = prompt("⛽ MODIFICA TIPO CARBURANTE:\n(Diesel, Diesel+, Benzina)", row.carburante);
+            if (nuovoCarb === null) return;
+            const nuoviDettagli = prompt("📝 MODIFICA STRINGA DETTAGLI / CONTATORI:", row.dettagli);
+            if (nuoviDettagli === null) return;
+            const nuovaGiacReale = prompt("📊 MODIFICA GIACENZA REALE FISICA (L):", row.giacenza_reale);
+            if (nuovaGiacReale === null) return;
+            const nuovoErogato = prompt("🚀 MODIFICA LITRI PARZIALI EROGATI (L):", row.erogato || 0);
+            if (nuovoErogato === null) return;
+            const nuovaGiacTeorica = prompt("📉 MODIFICA GIACENZA TEORICA (L):", row.giacenza_teorica || 0);
+            if (nuovaGiacTeorica === null) return;
+            const nuovoSfrido = prompt("⚠️ MODIFICA SFRIDO CALCOLATO (L) (usa il - davanti per i cali):", row.sfrido || 0);
+            if (nuovoSfrido === null) return;
+
+            const conferma = confirm("Vuoi salvare le modifiche nel Database SQL?");
+            if (!conferma) return;
+
+            fetch(`/api/movimenti/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pin: adminPin,
+                    operazione: nuovaOp,
+                    carburante: nuovoCarb,
+                    dettagli: nuoviDettagli,
+                    giacenza_reale: parseFloat(nuovaGiacReale),
+                    erogato: parseFloat(nuovoErogato),
+                    giacenza_teorica: parseFloat(nuovaGiacTeorica),
+                    sfrido: parseFloat(nuovoSfrido)
+                })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.success) {
+                    alert("Record modificato correttamente in MySQL!");
+                    eseguiConsultazioneAdmin();
+                    loadDatabaseData(impianto);
+                } else {
+                    alert("Errore durante la modifica: " + resData.error);
+                }
+            })
+            .catch(err => console.error("Errore di rete durante la PUT admin:", err));
         }
 
         function eliminaRecord(id, impianto) {
@@ -740,119 +796,6 @@
             .catch(err => console.error("Errore durante l'eliminazione:", err));
         }
 
-        function riempiTabellaSdoppiata(data, idDiesel, idBenzina, impianto) {
-            const tbDiesel = document.getElementById(idDiesel);
-            const tbBenzina = document.getElementById(idBenzina);
-            tbDiesel.innerHTML = ''; tbBenzina.innerHTML = '';
-            
-            const dieselRows = data.filter(r => r.carburante === 'Diesel');
-            const benzinaRows = data.filter(r => r.carburante === 'Benzina');
-
-            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
-            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
-
-            data.forEach(row => {
-                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
-                const badgeClass = row.operazione.includes("Carico") ? "badge-carico" : "badge-diesel";
-                
-                let sfridoTesto = '-';
-                if (row.sfrido !== null) {
-                    const val = parseFloat(row.sfrido).toFixed(1);
-                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
-                }
-
-                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
-
-                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
-                
-                if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
-                if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
-            });
-        }
-
-        function riempiTabellaUnica(data, idTabella, impianto) {
-            const tb = document.getElementById(idTabella);
-            tb.innerHTML = '';
-            
-            if(data.length === 0) { 
-                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
-                return; 
-            }
-
-            data.forEach(row => {
-                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
-                let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
-                if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
-
-                let sfridoTesto = '-';
-                if (row.sfrido !== null) {
-                    const val = parseFloat(row.sfrido).toFixed(1);
-                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
-                }
-
-                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
-
-                const tr = `<tr>
-                    <td>${dataFormattata}</td>
-                    <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
-                    <td>${row.dettagli}</td>
-                    <td>${sfridoTesto}</td>
-                    <td>${bottoneElimina}</td>
-                </tr>`;
-                tb.innerHTML += tr;
-            });
-        }
-
-        // Matematicamente allineato con le eccedenze e i cali reali di scarico
-        function calcolaGiacenzaAttuale(carburante, data) {
-            const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
-            if (idxChiusura === -1) return 0;
-            
-            let totale = parseFloat(data[idxChiusura].giacenza_reale || 0);
-            
-            for (let i = 0; i < idxChiusura; i++) {
-                if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
-                    const matchCarico = data[i].dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || data[i].dettagli.match(/\+\s*([\d.]+)/);
-                    if (matchCarico) totale += parseFloat(matchCarico[1]);
-
-                    const matchVar = data[i].dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
-                    if (matchVar) totale += parseFloat(matchVar[1]);
-                }
-            }
-            return totale.toFixed(1);
-        }
-
-        function aggiornaContatoriGiacenza(impianto, data) {
-            const dieselAttuale = calcolaGiacenzaAttuale('Diesel', data);
-            const benzinaAttuale = calcolaGiacenzaAttuale('Benzina', data);
-
-            if (impianto === 'Casal dei Pazzi') {
-                document.getElementById('stock_diesel_casal').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_benzina_casal').innerText = `${benzinaAttuale} L`;
-            } else if (impianto === 'Annibaliano') {
-                document.getElementById('stock_diesel_ann').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_benzina_ann').innerText = `${benzinaAttuale} L`;
-            } else if (impianto === 'Portuense') {
-                const dieselPlusAttuale = calcolaGiacenzaAttuale('Diesel+', data);
-                document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
-                document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
-            } else if (impianto === 'Giustiniana') {
-                document.getElementById('stock_diesel_giust').innerText = `${dieselAttuale} L`;
-                document.getElementById('stock_benzina_giust').innerText = `${benzinaAttuale} L`;
-            }
-        }
-
-        function sommaContatori(dettagli) {
-            const regex = /:\s*([\d.]+)/g;
-            let match;
-            let somma = 0;
-            while ((match = regex.exec(dettagli)) !== null) {
-                somma += parseFloat(match[1]);
-            }
-            return somma;
-        }
-
         // 🛡️ FUNZIONE DI CONVALIDA INTERCETTAZIONE: CARICHI AUTOBOTTE DIMENTICATI
         function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttualiSomma) {
             if (!ultimiMovimentiCaricati || ultimiMovimentiCaricati.length === 0) return true;
@@ -880,7 +823,7 @@
 
             const giacenzaTeoricaMassima = ultimaGiacenzaReale + totaleCarichiReg - erogatoValido;
 
-            if (litriImmessiReali > (giacenzaTeoricaMassima + 200)) {
+            if (litriImmessiReali > (giacenzaTeoricaMassima + 150)) {
                 alert(`🚨 BLOCCO DI SICUREZZA — SCARICO DIMENTICATO?\n\nLa Giacenza Reale inserita (${litriImmessiReali} L) supera nettamente la giacenza teorica massima stimata (${giacenzaTeoricaMassima.toFixed(1)} L).\n\nHai probabilmente dimenticato di inserire e inviare il modulo "Registra Scarico Autobotte" prima di questa chiusura.\n\nRegistra prima il carico o correggi i litri effettivi della giacenza reale.`);
                 return false;
             }
@@ -948,7 +891,7 @@
                 if (!verificaCaricoDimenticato("Diesel+", parseFloat(rDP || 0), totDieselPlusCont)) return;
                 if (!verificaCaricoDimenticato("Benzina", rB4 + rB5, totBenzinaCont)) return;
 
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nSalvare i dati?`);
+                const conferma = confirm(`❓ CONFERMA INSERIMENTO - PORTUENSE\n\nVuoi inviare la chiusura completa di tutte le linee analizzate?`);
                 if (!conferma) return;
 
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1 + rD2 }, false);

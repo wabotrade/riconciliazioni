@@ -240,7 +240,6 @@
         <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
-    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -293,7 +292,6 @@
         </div>
     </div>
 
-    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -374,7 +372,6 @@
         </div>
     </div>
 
-    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -427,7 +424,6 @@
         </div>
     </div>
 
-    <!-- 🔴 IMPIANTO GIUSTINIANA -->
     <div id="giustiniana" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Giustiniana</h1>
@@ -905,16 +901,6 @@
             }
         }
 
-        function sommaContatori(dettagli) {
-            const regex = /:\s*([\d.]+)/g;
-            let match;
-            let somma = 0;
-            while ((match = regex.exec(dettagli)) !== null) {
-                somma += parseFloat(match[1]);
-            }
-            return somma;
-        }
-
         // 🛡️ FUNZIONE DI CONVALIDA INTERCETTAZIONE: CARICHI AUTOBOTTE DIMENTICATI
         function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttualiSomma) {
             if (!ultimiMovimentiCaricati || ultimiMovimentiCaricati.length === 0) return true;
@@ -1141,7 +1127,7 @@
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
                 } else if (enteredPin === "4545") {
                     targetTab = "giustiniana"; nomeImpianto = "Giustiniana"; authorized = true;
-                } else if (enteredPin === "9999") { 
+                } else if (enteredPin === "9999") { // Master Admin generale per vederli tutti
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
                 } else {
                     alert("🚨 PIN inserito errato! Riprova.");

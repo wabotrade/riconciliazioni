@@ -181,6 +181,9 @@
 
         .btn-elimina { display: none; }
         body.admin-mode-active .btn-elimina { display: inline-block; }
+        
+        .btn-modifica { display: none; }
+        body.admin-mode-active .btn-modifica { display: inline-block; }
     </style>
 </head>
 <body style="display: none;">
@@ -237,6 +240,7 @@
         <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
+    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -289,6 +293,7 @@
         </div>
     </div>
 
+    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -369,6 +374,7 @@
         </div>
     </div>
 
+    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -421,6 +427,7 @@
         </div>
     </div>
 
+    <!-- 🔴 IMPIANTO GIUSTINIANA -->
     <div id="giustiniana" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Giustiniana</h1>
@@ -794,6 +801,118 @@
                 }
             })
             .catch(err => console.error("Errore durante l'eliminazione:", err));
+        }
+
+        function riempiTabellaSdoppiata(data, idDiesel, idBenzina, impianto) {
+            const tbDiesel = document.getElementById(idDiesel);
+            const tbBenzina = document.getElementById(idBenzina);
+            tbDiesel.innerHTML = ''; tbBenzina.innerHTML = '';
+            
+            const dieselRows = data.filter(r => r.carburante === 'Diesel');
+            const benzinaRows = data.filter(r => r.carburante === 'Benzina');
+
+            if(dieselRows.length === 0) tbDiesel.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+            if(benzinaRows.length === 0) tbBenzina.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>';
+
+            data.forEach(row => {
+                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                const badgeClass = row.operazione.includes("Carico") ? "badge-carico" : "badge-diesel";
+                
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
+
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+
+                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${badgeClass}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneElimina}</td></tr>`;
+                
+                if (row.carburante === 'Diesel') tbDiesel.innerHTML += tr;
+                if (row.carburante === 'Benzina') tbBenzina.innerHTML += tr;
+            });
+        }
+
+        function riempiTabellaUnica(data, idTabella, impianto) {
+            const tb = document.getElementById(idTabella);
+            tb.innerHTML = '';
+            
+            if(data.length === 0) { 
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nessun movimento registrato.</td></tr>'; 
+                return; 
+            }
+
+            data.forEach(row => {
+                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                let badgeClass = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
+                if (row.operazione.includes("Carico")) badgeClass = "badge-carico";
+
+                let sfridoTesto = '-';
+                if (row.sfrido !== null) {
+                    const val = parseFloat(row.sfrido).toFixed(1);
+                    sfridoTesto = val > 0 ? `<span style="color:#28a745; font-weight:bold;">+${val} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${val} L</span>`;
+                }
+
+                const bottoneElimina = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, '${impianto}')">🗑️ Elimina</button>`;
+
+                const tr = `<tr>
+                    <td>${dataFormattata}</td>
+                    <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
+                    <td>${row.dettagli}</td>
+                    <td>${sfridoTesto}</td>
+                    <td>${bottoneElimina}</td>
+                </tr>`;
+                tb.innerHTML += tr;
+            });
+        }
+
+        function calcolaGiacenzaAttuale(carburante, data) {
+            const idxChiusura = data.findIndex(r => r.carburante === carburante && r.operazione.includes("Chiusura"));
+            if (idxChiusura === -1) return 0;
+            
+            let totale = parseFloat(data[idxChiusura].giacenza_reale || 0);
+            
+            for (let i = 0; i < idxChiusura; i++) {
+                if (data[i].carburante === carburante && data[i].operazione.includes("Carico")) {
+                    const matchCarico = data[i].dettagli.match(/Autobotte:\s*\+\s*([\d.]+)/) || data[i].dettagli.match(/\+\s*([\d.]+)/);
+                    if (matchCarico) totale += parseFloat(matchCarico[1]);
+
+                    const matchVar = data[i].dettagli.match(/Cali\/Eccedenze viaggio:\s*([+-]?[\d.]+)/);
+                    if (matchVar) totale += parseFloat(matchVar[1]);
+                }
+            }
+            return totale.toFixed(1);
+        }
+
+        function aggiornaContatoriGiacenza(impianto, data) {
+            const dieselAttuale = calcolaGiacenzaAttuale('Diesel', data);
+            const benzinaAttuale = calcolaGiacenzaAttuale('Benzina', data);
+
+            if (impianto === 'Casal dei Pazzi') {
+                document.getElementById('stock_diesel_casal').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_casal').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Annibaliano') {
+                document.getElementById('stock_diesel_ann').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_ann').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Portuense') {
+                const dieselPlusAttuale = calcolaGiacenzaAttuale('Diesel+', data);
+                document.getElementById('stock_diesel_port').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_dieselplus_port').innerText = `${dieselPlusAttuale} L`;
+                document.getElementById('stock_benzina_port').innerText = `${benzinaAttuale} L`;
+            } else if (impianto === 'Giustiniana') {
+                document.getElementById('stock_diesel_giust').innerText = `${dieselAttuale} L`;
+                document.getElementById('stock_benzina_giust').innerText = `${benzinaAttuale} L`;
+            }
+        }
+
+        function sommaContatori(dettagli) {
+            const regex = /:\s*([\d.]+)/g;
+            let match;
+            let somma = 0;
+            while ((match = regex.exec(dettagli)) !== null) {
+                somma += parseFloat(match[1]);
+            }
+            return somma;
         }
 
         // 🛡️ FUNZIONE DI CONVALIDA INTERCETTAZIONE: CARICHI AUTOBOTTE DIMENTICATI

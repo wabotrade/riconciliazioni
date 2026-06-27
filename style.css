@@ -1,0 +1,177 @@
+:root { 
+    --diesel-color: #343a40; --diesel-plus-color: #0056b3; --benzina-color: #28a745; 
+    --casal-color: #6f42c1; --port-color: #e67e22; --ann-color: #007bff; --giust-color: #e74c3c;
+    --background-color: #f4f6f9; --card-color: #ffffff; --text-color: #212529; --border-color: #dee2e6; 
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 0; max-width: 100%; overflow-x: hidden; }
+body { font-family: 'Segoe UI', -apple-system, sans-serif; }
+
+/* Sbarra Superiore Amministratore */
+.admin-bar {
+    background-color: #e9ecef;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+.btn-admin-toggle {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    width: auto;
+    margin: 0;
+}
+.btn-admin-toggle.active {
+    background-color: #28a745;
+}
+
+/* 📊 PANNELLO QUERY CONSULTAZIONE ADMIN */
+.admin-query-panel {
+    display: none;
+    background-color: #e8f5e9;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px;
+}
+body.admin-mode-active .admin-query-panel { display: block; }
+
+/* Mini schede riassuntive KPI */
+.kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
+@media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
+.kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.kpi-title { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; font-weight: bold; }
+.kpi-value { font-size: 1.3rem; font-weight: bold; margin-top: 4px; }
+
+/* Navigazione a Schede (Tabs) */
+.tabs-container { display: flex; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; overflow-x: auto; }
+.tab-btn { flex: 1; padding: 18px 10px; border: none; background: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #6c757d; border-bottom: 4px solid transparent; white-space: nowrap; transition: 0.3s; }
+.tab-btn:hover { background-color: #f8f9fa; }
+.tab-btn.active[data-target="casal"] { color: var(--casal-color); border-bottom-color: var(--casal-color); }
+.tab-btn.active[data-target="portuense"] { color: var(--port-color); border-bottom-color: var(--port-color); }
+.tab-btn.active[data-target="annibaliano"] { color: var(--ann-color); border-bottom-color: var(--ann-color); }
+.tab-btn.active[data-target="giustiniana"] { color: var(--giust-color); border-bottom-color: var(--giust-color); }
+
+.tab-content { display: none; padding: 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s; }
+.tab-content.active { display: block; }
+
+.cisterne-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
+@media (min-width: 768px) { .cisterne-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
+
+.cisterna-card { background: var(--card-color); border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #ccc; }
+.cisterna-card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+.cisterna-diesel { border-top-color: var(--diesel-color); } .cisterna-dieselplus { border-top-color: var(--diesel-plus-color); } .cisterna-benzina { border-top-color: var(--benzina-color); }
+
+.stock-display { font-size: 2.2rem; font-weight: bold; margin: 5px 0; }
+.cisterna-diesel .stock-display { color: var(--diesel-color); } .cisterna-dieselplus .stock-display { color: var(--diesel-plus-color); } .cisterna-benzina .stock-display { color: var(--benzina-color); }
+.sub-stocks { font-size: 0.85rem; color: #495057; background: #e9ecef; padding: 6px; border-radius: 6px; margin-top: 5px; }
+
+.card { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 15px; }
+.card h2 { margin-top: 0; font-size: 1.1rem; padding-bottom: 8px; border-bottom: 2px solid var(--background-color); text-transform: uppercase; }
+.section-title-diesel { color: var(--diesel-color); border-left: 4px solid var(--diesel-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+.section-title-dieselplus { color: var(--diesel-plus-color); border-left: 4px solid var(--diesel-plus-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+.section-title-benzina { color: var(--benzina-color); border-left: 4px solid var(--benzina-color); padding-left: 8px; margin: 15px 0 10px 0; font-size: 1rem; font-weight: bold; }
+
+.inputs-flex { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
+@media (min-width: 768px) { .inputs-flex { flex-direction: row; flex-wrap: wrap; gap: 15px; } .form-group { flex: 1; min-width: 180px; } }
+
+.form-group { width: 100%; display: flex; flex-direction: column; }
+.form-group label { font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #495057; }
+.form-group input, .form-group select { padding: 12px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; width: 100%; }
+
+button { padding: 14px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; width: 100%; }
+@media (min-width: 768px) { button { width: auto; min-width: 250px; display: block; margin-left: auto; margin-right: auto; } }
+.btn-casal { background-color: var(--casal-color); }
+.btn-port { background-color: var(--port-color); }
+.btn-ann { background-color: var(--ann-color); }
+.btn-giust { background-color: var(--giust-color); }
+.btn-acquisto { background-color: #28a745; }
+
+.tables-flex-container { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-bottom: 20px; }
+@media (min-width: 1024px) { .tables-flex-container { flex-direction: row; } }
+
+.table-section { background: var(--card-color); border-radius: 10px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); flex: 1; min-width: 0; }
+.table-responsive { width: 100%; }
+
+table { width: 100%; border-collapse: collapse; }
+@media (min-width: 768px) { table { min-width: 600px; } }
+
+th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; }
+th { background-color: #f1f3f5; font-weight: 600; color: #495057; }
+
+.badge { padding: 4px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; color: white; display: inline-block; }
+.badge-diesel { background-color: var(--diesel-color); } .badge-dieselplus { background-color: var(--diesel-plus-color); } .badge-benzina { background-color: var(--benzina-color); } .badge-carico { background-color: #28a745; }
+
+.btn-elimina { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0; }
+.btn-elimina:hover { background: #bd2130; }
+
+.btn-modifica { background: #e67e22; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.2s; width: auto; margin: 0 5px 0 0; }
+.btn-modifica:hover { background: #d35400; }
+
+/* Mobile Layout Override */
+@media (max-width: 767px) {
+    table, thead, tbody, th, td, tr { display: block; width: 100%; }
+    table thead { display: none; }
+    table tbody tr {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0 !important;
+        border: none !important;
+        border-bottom: 1px dashed #eee !important;
+        text-align: right;
+        font-size: 0.9rem;
+    }
+    
+    #tbl_diesel_casal td:nth-of-type(1)::before, #tbl_benzina_casal td:nth-of-type(1)::before,
+    #tbl_diesel_ann td:nth-of-type(1)::before, #tbl_benzina_ann td:nth-of-type(1)::before,
+    #tbl_diesel_giust td:nth-of-type(1)::before, #tbl_benzina_giust td:nth-of-type(1)::before,
+    #tbl_generale_port td:nth-of-type(1)::before, #tbl_risultati_query td:nth-of-type(1)::before { content: "📅 Data e Ora"; font-weight: bold; color: #6c757d; }
+    
+    #tbl_diesel_casal td:nth-of-type(2)::before, #tbl_benzina_casal td:nth-of-type(2)::before,
+    #tbl_diesel_ann td:nth-of-type(2)::before, #tbl_benzina_ann td:nth-of-type(2)::before,
+    #tbl_diesel_giust td:nth-of-type(2)::before, #tbl_benzina_giust td:nth-of-type(2)::before,
+    #tbl_risultati_query td:nth-of-type(2)::before { content: "⚙️ Tipo Record"; font-weight: bold; color: #6c757d; }
+    
+    #tbl_generale_port td:nth-of-type(2)::before { content: "⛽ Carburante"; font-weight: bold; color: #6c757d; }
+
+    #tbl_diesel_casal td:nth-of-type(3)::before, #tbl_benzina_casal td:nth-of-type(3)::before,
+    #tbl_diesel_ann td:nth-of-type(3)::before, #tbl_benzina_ann td:nth-of-type(3)::before,
+    #tbl_diesel_giust td:nth-of-type(3)::before, #tbl_benzina_giust td:nth-of-type(3)::before,
+    #tbl_generale_port td:nth-of-type(3)::before, #tbl_risultati_query td:nth-of-type(3)::before { content: "📝 Valori Contatori"; font-weight: bold; color: #6c757d; }
+
+    #tbl_diesel_casal td:nth-of-type(4)::before, #tbl_benzina_casal td:nth-of-type(4)::before,
+    #tbl_diesel_ann td:nth-of-type(4)::before, #tbl_benzina_ann td:nth-of-type(4)::before,
+    #tbl_diesel_giust td:nth-of-type(4)::before, #tbl_benzina_giust td:nth-of-type(4)::before,
+    #tbl_generale_port td:nth-of-type(4)::before, #tbl_risultati_query td:nth-of-type(4)::before { content: "📊 Sfrido Calcolato"; font-weight: bold; color: #6c757d; }
+
+    td:nth-of-type(5) { 
+        display: none; 
+        border-bottom: none !important; 
+        padding-top: 12px !important; 
+        justify-content: center; 
+    }
+    body.admin-mode-active td:nth-of-type(5) { display: flex; gap: 5px; justify-content: center; }
+}
+
+.btn-elimina { display: none; }
+body.admin-mode-active .btn-elimina { display: inline-block; }
+.btn-modifica { display: none; }
+body.admin-mode-active .btn-modifica { display: inline-block; }

@@ -65,7 +65,7 @@ function eseguiConsultazioneAdmin() {
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#dc3545;">Nessun record trovato.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#dc3545;">Nessun record corrisponde ai filtri selezionati.</td></tr>';
             document.getElementById('kpi_erogato').innerText = "0 L";
             document.getElementById('kpi_carichi').innerText = "0 L";
             document.getElementById('kpi_sfrido').innerText = "0 L";
@@ -100,7 +100,7 @@ function eseguiConsultazioneAdmin() {
 
             tbody.innerHTML += `<tr>
                 <td>${dataFormattata}<br><small style="color:#6c757d; font-weight:bold;">${row.impianto}</small></td>
-                <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
+                <td><span class="badge ${badgeClass}">${row.operazione}</span><br><strong>${row.operazione}</strong></td>
                 <td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneModifica}${bottoneElimina}</td>
             </tr>`;
         });
@@ -136,18 +136,18 @@ function modificaRecord(id, impianto) {
             giacenza_teorica: parseFloat(nuovaGiacTeorica), sfrido: parseFloat(nuovoSfrido)
         })
     }).then(res => res.json()).then(resData => {
-        if (resData.success) { alert("Modificato!"); eseguiConsultazioneAdmin(); loadDatabaseData(impianto); }
+        if (resData.success) { alert("Modificato con successo!"); eseguiConsultazioneAdmin(); loadDatabaseData(impianto); }
     }).catch(err => console.error(err));
 }
 
 function eliminaRecord(id, impianto) {
-    if (!isAdminMode || !confirm("Eliminare definitivamente?")) return;
+    if (!isAdminMode || !confirm("Eliminare definitivamente questo movimento?")) return;
     fetch(`/api/movimenti/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: adminPin })
     }).then(res => res.json()).then(data => {
-        if (data.success) { alert("Rimosso!"); loadDatabaseData(impianto); if(isAdminMode) eseguiConsultazioneAdmin(); }
+        if (data.success) { alert("Record rimosso!"); loadDatabaseData(impianto); if(isAdminMode) eseguiConsultazioneAdmin(); }
     }).catch(err => console.error(err));
 }
 
@@ -157,7 +157,7 @@ function inviaAlDatabase(payload, mostraAlert = true) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     }).then(res => res.json()).then(data => {
-        if(data.success && mostraAlert) { alert("Operazione registrata!"); loadDatabaseData(payload.impianto); }
+        if(data.success && mostraAlert) { alert("Operazione registrata in MySQL!"); loadDatabaseData(payload.impianto); }
     }).catch(err => console.error(err));
 }
 
@@ -189,8 +189,8 @@ function validaContatorePompa(carburante, nomePompa, nuovoValore) {
     if (!uChiusura) return true;
     const vPrec = estraiContatorePrecedente(uChiusura.dettagli, nomePompa);
     if (vPrec === null) return true;
-    if (nuovoValore < vPrec) { alert(`🚨 ERRORE - POMPA ${nomePompa} inferiore a ${vPrec}`); return false; }
-    if (nuovoValore > vPrec + 2000 && !confirm(`⚠️ ANOMALIA - Forzare invio Pompa ${nomePompa}?`)) return false;
+    if (nuovoValore < vPrec) { alert(`🚨 ERRORE CONTATORE - POMPA ${nomePompa} inferiore all'ultimo dato (${vPrec})`); return false; }
+    if (nuovoValore > vPrec + 2000 && !confirm(`⚠️ ANOMALIA - Il valore supera di 2000L la vecchia lettura. Forzare l'invio?`)) return false;
     return true;
 }
 
@@ -210,9 +210,15 @@ function calcolaGiacenzaAttuale(carburante, data) {
 }
 
 function aggiornaContatoriGiacenza(impianto, data) {
-    document.getElementById(`stock_diesel_${impianto === 'Casal dei Pazzi'?'casal':(impianto==='Annibaliano'?'ann':(impianto==='Giustiniana'?'giust':'port'))}`).innerText = `${calcolaGiacenzaAttuale('Diesel', data)} L`;
-    document.getElementById(`stock_benzina_${impianto === 'Casal dei Pazzi'?'casal':(impianto==='Annibaliano'?'ann':(impianto==='Giustiniana'?'giust':'port'))}`).innerText = `${calcolaGiacenzaAttuale('Benzina', data)} L`;
-    if (impianto === 'Portuense') document.getElementById('stock_dieselplus_port').innerText = `${calcolaGiacenzaAttuale('Diesel+', data)} L`;
+    const code = impianto === 'Casal dei Pazzi' ? 'casal' : (impianto === 'Annibaliano' ? 'ann' : (impianto === 'Giustiniana' ? 'giust' : 'port'));
+    const dieselEl = document.getElementById(`stock_diesel_${code}`);
+    const benzinaEl = document.getElementById(`stock_benzina_${code}`);
+    if (dieselEl) dieselEl.innerText = `${calcolaGiacenzaAttuale('Diesel', data)} L`;
+    if (benzinaEl) benzinaEl.innerText = `${calcolaGiacenzaAttuale('Benzina', data)} L`;
+    if (impianto === 'Portuense') {
+        const dpEl = document.getElementById('stock_dieselplus_port');
+        if (dpEl) dpEl.innerText = `${calcolaGiacenzaAttuale('Diesel+', data)} L`;
+    }
 }
 
 function sommaContatori(dettagli) {
@@ -237,8 +243,8 @@ function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttua
         }
     }
     const maxTeorico = parseFloat(uCh.giacenza_reale || 0) + tCarichi - erog;
-    if (litriImmessiReali > (maxTeorico + 100)) { // 🎯 SOGLIA IMPOSTATA A 100 LITRI COME DA RICHIESTA
-        alert(`🚨 BLOCCO DI SICUREZZA — Scarico Dimenticato o Litri Errati.\nMassimo stimato: ${maxTeorica.toFixed(1)} L.`);
+    if (litriImmessiReali > (maxTeorico + 100)) { 
+        alert(`🚨 BLOCCO DI SICUREZZA — SCARICO DIMENTICATO?\n\nLa giacenza inserita supera nettamente la giacenza teorica massima stimata (${maxTeorico.toFixed(1)} L).\n\nRegistra prima il carico autobotte.`);
         return false;
     }
     return true;
@@ -246,6 +252,7 @@ function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttua
 
 function riempiTabellaSdoppiata(data, idD, idB, imp) {
     const tD = document.getElementById(idD), tB = document.getElementById(idB);
+    if (!tD || !tB) return;
     tD.innerHTML = ''; tB.innerHTML = '';
     data.forEach(row => {
         const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
@@ -259,7 +266,8 @@ function riempiTabellaSdoppiata(data, idD, idB, imp) {
 }
 
 function riempiTabellaUnica(data, idT, imp) {
-    const t = document.getElementById(idT); t.innerHTML = '';
+    const t = document.getElementById(idT); if (!t) return;
+    t.innerHTML = '';
     data.forEach(row => {
         const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
         let bCls = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
@@ -277,7 +285,7 @@ function inviaChiusura(event, impianto) {
         const cA3 = document.getElementById('c_A3_casal').value, cB3 = document.getElementById('c_B3_casal').value, rB = document.getElementById('stock_B_real_casal').value;
         if (!validaContatorePompa("Diesel", "A1", cA1) || !validaContatorePompa("Diesel", "B1", cB1) || !validaContatorePompa("Benzina", "A3", cA3) || !validaContatorePompa("Benzina", "B3", cB3)) return;
         if (!verificaCaricoDimenticato("Diesel", parseFloat(rD), parseFloat(cA1)+parseFloat(cB1)) || !verificaCaricoDimenticato("Benzina", parseFloat(rB), parseFloat(cA3)+parseFloat(cB3))) return;
-        if (!confirm("Inviare?")) return;
+        if (!confirm("Inviare i dati della chiusura di Casal dei Pazzi?")) return;
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }, false);
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `A3: ${cA3} | B3: ${cB3}`, giacenza_reale: rB }, true);
         event.target.reset();
@@ -291,7 +299,7 @@ function inviaChiusura(event, impianto) {
         if (!verificaCaricoDimenticato("Diesel", rD1+rD2, parseFloat(c1)+parseFloat(c4)+parseFloat(c7)+parseFloat(c10))) return;
         if (!verificaCaricoDimenticato("Diesel+", parseFloat(rDP), parseFloat(c2)+parseFloat(c5)+parseFloat(c8)+parseFloat(c11))) return;
         if (!verificaCaricoDimenticato("Benzina", rB4+rB5, parseFloat(c3)+parseFloat(c6)+parseFloat(c9)+parseFloat(c12))) return;
-        if (!confirm("Inviare?")) return;
+        if (!confirm("Inviare la chiusura di Portuense?")) return;
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1:${c1} P4:${c4} P7:${c7} P10:${c10}`, giacenza_reale: rD1+rD2 }, false);
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Diesel+", dettagli: `P2:${c2} P5:${c5} P8:${c8} P11:${c11}`, giacenza_reale: rDP }, false);
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3:${c3} P6:${c6} P9:${c9} P12:${c12}`, giacenza_reale: rB4+rB5 }, true);
@@ -301,7 +309,7 @@ function inviaChiusura(event, impianto) {
         const c3 = document.getElementById('c_3_ann').value, c8 = document.getElementById('c_8_ann').value, rB = document.getElementById('stock_B_real_ann').value;
         if (!validaContatorePompa("Diesel", "P1", c1) || !validaContatorePompa("Diesel", "P6", c6) || !validaContatorePompa("Benzina", "P3", c3) || !validaContatorePompa("Benzina", "P8", c8)) return;
         if (!verificaCaricoDimenticato("Diesel", parseFloat(rD), parseFloat(c1)+parseFloat(c6)) || !verificaCaricoDimenticato("Benzina", parseFloat(rB), parseFloat(c3)+parseFloat(c8))) return;
-        if (!confirm("Inviare?")) return;
+        if (!confirm("Inviare la chiusura di Annibaliano?")) return;
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `P1: ${c1} | P6: ${c6}`, giacenza_reale: rD }, false);
         inviaAlDatabase({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
         event.target.reset();
@@ -309,6 +317,8 @@ function inviaChiusura(event, impianto) {
         const c_T31 = document.getElementById('c_T31_giust').value, c_T41 = document.getElementById('c_T41_giust').value, price_D = document.getElementById('price_D_giust').value, rD = document.getElementById('stock_D_real_giust').value;
         const c_T33 = document.getElementById('c_T33_giust').value, c_T43 = document.getElementById('c_T43_giust').value, price_B = document.getElementById('price_B_giust').value, rB = document.getElementById('stock_B_real_giust').value;
         if (!validaContatorePompa("Diesel", "T3-1", c_T31) || !validaContatorePompa("Diesel", "T4-1", c_T41) || !validaContatorePompa("Benzina", "T3-3", c_T33) || !validaContatorePompa("Benzina", "T4-3", c_T43)) return;
+        
+        // 🎯 FIX FONDAMENTALE CONTATORI GIUSTINIANA (Risolto il crash causato da cA1/cB1)
         if (!verificaCaricoDimenticato("Diesel", parseFloat(rD), parseFloat(c_T31)+parseFloat(c_T41)) || !verificaCaricoDimenticato("Benzina", parseFloat(rB), parseFloat(c_T33)+parseFloat(c_T43))) return;
 
         const lastD = ultimiMovimentiCaricati.find(r => r.carburante === 'Diesel' && r.operazione.includes("Chiusura"));
@@ -319,7 +329,7 @@ function inviaChiusura(event, impianto) {
         let erogB = (parseFloat(c_T33)+parseFloat(c_T43)) - (lastB ? sommaContatori(lastB.dettagli) : (parseFloat(c_T33)+parseFloat(c_T43)));
         let totB = Math.max(0, erogB) * parseFloat(price_B || 0);
 
-        if (!confirm(`Confirm Giustiniana:\nDiesel: ${erogD.toFixed(1)}L (€ ${totD.toFixed(2)})\nBenzina: ${erogB.toFixed(1)}L (€ ${totB.toFixed(2)})`)) return;
+        if (!confirm(`Conferma Chiusura Giustiniana:\nDiesel: ${erogD.toFixed(1)}L (Incasso € ${totD.toFixed(2)})\nBenzina: ${erogB.toFixed(1)}L (Incasso € ${totB.toFixed(2)})`)) return;
 
         let detD = `T3-1: ${c_T31} | T4-1: ${c_T41} - Prezzo vda ${price_D} €/L - Erogato ${erogD.toFixed(1)} L - Totale € ${totD.toFixed(2)}`;
         let detB = `T3-3: ${c_T33} | T4-3: ${c_T43} - Prezzo vda ${price_B} €/L - Erogato ${erogB.toFixed(1)} L - Totale € ${totB.toFixed(2)}`;
@@ -343,6 +353,28 @@ function inviaCarico(event, impianto) {
     event.target.reset(); if(prf) document.getElementById(`container_var_${prf}`).style.display = 'none';
 }
 
+// 🖇️ AGGANCIO DEI COMPORTAMENTI SUI BOTTONI DELLE SCHEDE
+document.querySelectorAll('.tab-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        button.classList.add('active');
+        const targetId = button.getAttribute('data-target');
+        const activeContent = document.getElementById(targetId);
+        if (activeContent) activeContent.classList.add('active');
+
+        let nomeImpianto = targetId === 'casal' ? 'Casal dei Pazzi' : (targetId === 'portuense' ? 'Portuense' : (targetId === 'annibaliano' ? 'Annibaliano' : 'Giustiniana'));
+        
+        // 🔄 SINCRONIZZAZIONE INTELLIGENTE: Se l'admin naviga le schede sotto, aggancia il filtro in alto automaticamente
+        if (isAdminMode && document.getElementById('q_impianto')) {
+            document.getElementById('q_impianto').value = nomeImpianto;
+        }
+        
+        loadDatabaseData(nomeImpianto);
+    });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     let auth = false, tab = "", imp = "", pin = "";
     while (!auth) {
@@ -359,9 +391,12 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.tab-btn').forEach(b => { if(b.getAttribute('data-target')!==tab) b.style.display='none'; });
         if(document.getElementById('q_impianto')) { document.getElementById('q_impianto').value = imp; document.getElementById('q_impianto').disabled = true; }
     }
+    
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => content = c.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); // FIX: Eliminata la variabile globale tossica
+    
     if(document.querySelector(`.tab-btn[data-target="${tab}"]`)) document.querySelector(`.tab-btn[data-target="${tab}"]`).classList.add('active');
-    if(document.getElementById(tab)) document.getElementById(tab).classList.add('active');
+    const initContent = document.getElementById(tab);
+    if(initContent) initContent.classList.add('active');
     loadDatabaseData(imp);
 });

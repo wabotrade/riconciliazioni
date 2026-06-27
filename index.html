@@ -52,7 +52,7 @@
         }
         body.admin-mode-active .admin-query-panel { display: block; }
         
-        /* Mini schede riassuntive KPI (Adattate a 4 colonne auto-fit) */
+        /* Mini schede riassuntive KPI */
         .kpi-report-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; }
         @media (min-width: 576px) { .kpi-report-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
         .kpi-report-card { background: white; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -240,6 +240,7 @@
         <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
+    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
@@ -292,6 +293,7 @@
         </div>
     </div>
 
+    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
@@ -372,6 +374,7 @@
         </div>
     </div>
 
+    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
@@ -424,6 +427,7 @@
         </div>
     </div>
 
+    <!-- 🔴 IMPIANTO GIUSTINIANA -->
     <div id="giustiniana" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Giustiniana</h1>
@@ -753,7 +757,7 @@
                     dettagli: nuoviDettagli,
                     giacenza_reale: parseFloat(nuovaGiacReale),
                     erogato: parseFloat(nuovoErogato),
-                    giacenza_teorica: parseFloat(nuovaGiacTeorica),
+                    giacenza_teorica: parseFloat(nuevaGiacTeorica),
                     sfrido: parseFloat(nuovoSfrido)
                 })
             })
@@ -770,6 +774,7 @@
             .catch(err => console.error("Errore di rete durante la PUT admin:", err));
         }
 
+        functionBox = eliminaRecord;
         function eliminaRecord(id, impianto) {
             if (!isAdminMode) {
                 alert("Azione non autorizzata. Sblocca prima la Modalità Admin con il lucchetto in alto.");
@@ -901,6 +906,16 @@
             }
         }
 
+        function sommaContatori(dettagli) {
+            const regex = /:\s*([\d.]+)/g;
+            let match;
+            let somma = 0;
+            while ((match = regex.exec(dettagli)) !== null) {
+                somma += parseFloat(match[1]);
+            }
+            return somma;
+        }
+
         // 🛡️ FUNZIONE DI CONVALIDA INTERCETTAZIONE: CARICHI AUTOBOTTE DIMENTICATI
         function verificaCaricoDimenticato(carburante, litriImmessiReali, contatoriAttualiSomma) {
             if (!ultimiMovimentiCaricati || ultimiMovimentiCaricati.length === 0) return true;
@@ -1025,47 +1040,6 @@
                 inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `P3: ${c3} | P8: ${c8}`, giacenza_reale: rB }, true);
                 event.target.reset();
             }
-            else if (impianto === 'Giustiniana') {
-                const c_T31 = document.getElementById('c_T31_giust').value;
-                const c_T41 = document.getElementById('c_T41_giust').value;
-                const price_D = document.getElementById('price_D_giust').value;
-                const rD = document.getElementById('stock_D_real_giust').value;
-
-                const c_T33 = document.getElementById('c_T33_giust').value;
-                const c_T43 = document.getElementById('c_T43_giust').value;
-                const price_B = document.getElementById('price_B_giust').value;
-                const rB = document.getElementById('stock_B_real_giust').value;
-
-                if (!validaContatorePompa("Diesel", "T3-1", c_T31)) return;
-                if (!validaContatorePompa("Diesel", "T4-1", c_T41)) return;
-                if (!validaContatorePompa("Benzina", "T3-3", c_T33)) return;
-                if (!validaContatorePompa("Benzina", "T4-3", c_T43)) return;
-
-                if (!verificaCaricoDimenticato("Diesel", parseFloat(rD || 0), parseFloat(c_T31 || 0) + parseFloat(c_T41 || 0))) return;
-                if (!verificaCaricoDimenticato("Benzina", parseFloat(rB || 0), parseFloat(c_T33 || 0) + parseFloat(c_T43 || 0))) return;
-
-                const lastD = ultimiMovimentiCaricati.find(r => r.carburante === 'Diesel' && r.operazione.includes("Chiusura"));
-                let prevD = lastD ? sommaContatori(lastD.dettagli) : (parseFloat(c_T31) + parseFloat(c_T41));
-                let erogD = (parseFloat(c_T31) + parseFloat(c_T41)) - prevD;
-                if (erogD < 0) erogD = 0;
-                let totD = erogD * parseFloat(price_D || 0);
-
-                const lastB = ultimiMovimentiCaricati.find(r => r.carburante === 'Benzina' && r.operazione.includes("Chiusura"));
-                let prevB = lastB ? sommaContatori(lastB.dettagli) : (parseFloat(c_T33) + parseFloat(c_T43));
-                let erogB = (parseFloat(c_T33) + parseFloat(c_T43)) - prevB;
-                if (erogB < 0) erogB = 0;
-                let totB = erogB * parseFloat(price_B || 0);
-
-                const conferma = confirm(`❓ CONFERMA INSERIMENTO - GIUSTINIANA\n\nDIESEL venduto stimato: ${erogD.toFixed(1)} L (Incasso € ${totD.toFixed(2)})\nBENZINA venduta stimata: ${erogB.toFixed(1)} L (Incasso € ${totB.toFixed(2)})\n\nSalvare nel database?`);
-                if (!conferma) return;
-
-                let dettagliD = `T3-1: ${c_T31} | T4-1: ${c_T41} - Prezzo vda ${price_D} €/L - Erogato ${erogD.toFixed(1)} L - Totale € ${totD.toFixed(2)}`;
-                let dettagliB = `T3-3: ${c_T33} | T4-3: ${c_T43} - Prezzo vda ${price_B} €/L - Erogato ${erogB.toFixed(1)} L - Totale € ${totB.toFixed(2)}`;
-
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: dettagliD, giacenza_reale: rD }, false);
-                inviaAlDatabase({ impianto, data_ora: dataOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: dettagliB, giacenza_reale: rB }, true);
-                event.target.reset();
-            }
         }
 
         function inviaCarico(event, impianto) {
@@ -1127,7 +1101,7 @@
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
                 } else if (enteredPin === "4545") {
                     targetTab = "giustiniana"; nomeImpianto = "Giustiniana"; authorized = true;
-                } else if (enteredPin === "9999") { // Master Admin generale per vederli tutti
+                } else if (enteredPin === "9999") { 
                     targetTab = "casal"; nomeImpianto = "Casal dei Pazzi"; authorized = true;
                 } else {
                     alert("🚨 PIN inserito errato! Riprova.");

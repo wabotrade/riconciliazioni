@@ -47,7 +47,7 @@ function estraiLitriCarico(dettagli) {
     return totaleNetto;
 }
 
-// 2. [POST] Salva movimento e calcola lo Sfrido
+// 2. [POST] Salva movimento Carburanti e calcola lo Sfrido
 app.post('/api/salva_movimento', async (req, res) => {
     try {
         const { impianto, data_ora, operazione, carburante, dettagli, giacenza_reale } = req.body;
@@ -113,7 +113,7 @@ app.post('/api/salva_movimento', async (req, res) => {
     }
 });
 
-// 3. [GET] Storico ordinario
+// 3. [GET] Storico ordinario Carburanti
 app.get('/api/movimenti/:impianto', async (req, res) => {
     try {
         const { impianto } = req.params;
@@ -159,7 +159,7 @@ app.get('/api/admin/consulta', async (req, res) => {
     }
 });
 
-// 🚨 5. [DELETE] Rimosso record errato
+// 🗑️ 5. [DELETE] Rimosso record errato
 app.delete('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -178,7 +178,7 @@ app.delete('/api/movimenti/:id', async (req, res) => {
     }
 });
 
-// 🚨 6. [PUT] Modifica analitica di un record esistente (Pannello Admin)
+// ✏️ 6. [PUT] Modifica analitica di un record esistente (Pannello Admin)
 app.put('/api/movimenti/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -199,6 +199,52 @@ app.put('/api/movimenti/:id', async (req, res) => {
         res.status(200).json({ success: true, message: "Record modificato correttamente nel database." });
     } catch (error) {
         console.error("Errore durante la modifica del record SQL:", error);
+        res.status(500).json({ success: false, error: "Errore interno del server" });
+    }
+});
+
+// ==========================================
+// 🛒 NUOVE ROTTE SPECIFICHE TABELLA PRODOTTI
+// ==========================================
+
+// A. [POST] Salva il bilancio d'inventario serale di una referenza shop
+app.post('/api/salva_prodotto', async (req, res) => {
+    try {
+        const { impianto, data_ora, descrizione, prezzo, giacenza_ieri, carico_oggi, giacenza_stasera, venduto } = req.body;
+
+        if (!impianto || !descrizione) {
+            return res.status(400).json({ success: false, error: "Dati prodotto incompleti" });
+        }
+
+        const query = `
+            INSERT INTO registro_prodotti 
+            (impianto, data_ora, descrizione, prezzo, giacenza_ieri, carico_oggi, giacenza_stasera, venduto) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const values = [impianto, data_ora, descrizione, prezzo, giacenza_ieri, carico_oggi, giacenza_stasera, venduto];
+        await pool.execute(query, values);
+
+        res.status(200).json({ success: true, message: "Bilancio prodotto registrato con successo!" });
+    } catch (error) {
+        console.error("Errore salvataggio tabella prodotti:", error);
+        res.status(500).json({ success: false, error: "Errore interno del server" });
+    }
+});
+
+// B. [GET] Recupera la cronologia dello shop per calcolare la giacenza iniziale
+app.get('/api/prodotti/:impianto', async (req, res) => {
+    try {
+        const { impianto } = req.params;
+        const query = `
+            SELECT descrizione, giacenza_stasera, prezzo 
+            FROM registro_prodotti 
+            WHERE impianto = ? 
+            ORDER BY data_ora DESC, id DESC
+        `;
+        const [rows] = await pool.execute(query, [impianto]);
+        res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Errore recupero tabella prodotti:", error);
         res.status(500).json({ success: false, error: "Errore interno del server" });
     }
 });

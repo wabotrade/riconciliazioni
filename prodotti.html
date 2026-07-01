@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Prodotti - Hub Carburanti</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-bar">
+        <a href="index.html" style="text-decoration: none; color: #6c757d; font-weight: bold;">⬅️ Torna ai Carburanti</a>
+    </div>
+
+    <div class="tab-content active" style="padding: 15px; max-width: 800px; margin: 0 auto;">
+        <header>
+            <h1>🛒 Registro Prodotti & Shop</h1>
+            <p id="nome_impianto_attivo">Impianto: Caricamento...</p>
+        </header>
+
+        <div class="card">
+            <h2>Registra Vendita / Carico Magazzino</h2>
+            <form id="form_prodotti" onsubmit="inviaMovimentoProdotto(event)">
+                <div class="inputs-flex">
+                    <div class="form-group">
+                        <label>Prodotto</label>
+                        <select id="p_nome" required>
+                            <option value="Olio Motore">🛢️ Olio Motore</option>
+                            <option value="Liquido Tergicristalli">💧 Liquido Tergicristalli</option>
+                            <option value="Lavaggio Auto">🚗 Servizio Lavaggio</option>
+                            <option value="Shop / Bar">☕ Articoli Shop</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Operazione</label>
+                        <select id="p_operazione" required>
+                            <option value="Vendita">📉 Vendita (Scarico)</option>
+                            <option value="Carico Rifornimento">🚚 Carico Rifornimento</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantità / Pezzi</label>
+                        <input type="number" id="p_quantita" step="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prezzo Unitario (€)</label>
+                        <input type="number" id="p_prezzo" step="0.01" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-acquisto" style="width: 100%; margin-top: 15px;">💾 Registra nel Database</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Intercetta l'impianto dall'indirizzo web (es: prodotti.html?impianto=Portuense)
+        const urlParams = new URLSearchParams(window.location.search);
+        const impiantoAttivo = urlParams.get('impianto') || 'Non specificato';
+        document.getElementById('nome_impianto_attivo').innerText = `Impianto: ${impiantoAttivo}`;
+
+        function inviaMovimentoProdotto(e) {
+            e.preventDefault();
+            // Qui andrà la fetch POST verso la nuova tabella prodotti che creeremo in server.js
+            alert(`Registrazione inviata per ${impiantoAttivo}`);
+        }
+    </script>
+</body>
+</html>

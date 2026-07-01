@@ -60,10 +60,12 @@
         <button class="tab-btn" data-target="giustiniana">🔴 Giustiniana</button>
     </div>
 
+    <!-- CASAL DEI PAZZI -->
     <div id="casal" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Casal dei Pazzi</h1>
             <p>Database SQL Sincronizzato</p>
+            <button onclick="location.href='prodotti.html?impianto=Casal dei Pazzi'" class="btn-modifica" style="width: auto; display: inline-block; margin-top: 5px;">🛒 Gestione Prodotti & Shop</button>
         </header>
         <div class="cisterne-grid">
             <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_casal">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: A1, B1</div></div>
@@ -110,10 +112,12 @@
         </div>
     </div>
 
+    <!-- PORTUENSE -->
     <div id="portuense" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Portuense</h1>
             <p>Database SQL Sincronizzato</p>
+            <button onclick="location.href='prodotti.html?impianto=Portuense'" class="btn-modifica" style="width: auto; display: inline-block; margin-top: 5px;">🛒 Gestione Prodotti & Shop</button>
         </header>
         <div class="cisterne-grid">
             <div class="cisterna-card cisterna-diesel"><h3>🛢️ TOTALE DIESEL</h3><div class="stock-display" id="stock_diesel_port">0 L</div><div class="sub-stocks" id="sub_diesel_port">Cist. 1 & 4</div></div>
@@ -176,21 +180,45 @@
                 </div>
             </form>
         </div>
-        <div class="table-section">
-            <h2>📋 Movimenti Database - Portuense</h2>
-            <div class="table-responsive">
-                <table>
-                    <thead><tr><th>Data</th><th>Carburante</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
-                    <tbody id="tbl_generale_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
-                </table>
+        
+        <!-- 📊 MODIFICA: SDOPPIAMENTO STORICO PORTUENSE IN TRE TABELLE DISTINTE -->
+        <div class="tables-flex-container" style="flex-direction: column; gap: 15px;">
+            <div class="table-section">
+                <h2>📋 Storico Linea Diesel Standard (Cist. 1 & 4)</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                        <tbody id="tbl_diesel_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="table-section">
+                <h2>📋 Storico Linea Diesel+ Premium (Cist. 2)</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                        <tbody id="tbl_dieselplus_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="table-section">
+                <h2>📋 Storico Linea Benzina (Cist. 3 & 5)</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Data</th><th>Operazione</th><th>Dettagli</th><th>Sfrido</th><th>Azioni</th></tr></thead>
+                        <tbody id="tbl_benzina_port"><tr><td colspan="5" style="text-align:center;">In attesa connessione DB...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- ANNIBALIANO -->
     <div id="annibaliano" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Annibaliano</h1>
             <p>Database SQL Sincronizzato</p>
+            <button onclick="location.href='prodotti.html?impianto=Annibaliano'" class="btn-modifica" style="width: auto; display: inline-block; margin-top: 5px;">🛒 Gestione Prodotti & Shop</button>
         </header>
         <div class="cisterne-grid">
             <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA: DIESEL</h3><div class="stock-display" id="stock_diesel_ann">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: 1, 6</div></div>
@@ -237,10 +265,12 @@
         </div>
     </div>
 
+    <!-- GIUSTINIANA -->
     <div id="giustiniana" class="tab-content">
         <header>
             <h1>⛽ Registro Chiusure - Giustiniana</h1>
             <p>Database SQL Sincronizzato con Calcolo Vendite ed Incassi</p>
+            <button onclick="location.href='prodotti.html?impianto=Giustiniana'" class="btn-modifica" style="width: auto; display: inline-block; margin-top: 5px;">🛒 Gestione Prodotti & Shop</button>
         </header>
         <div class="cisterne-grid">
             <div class="cisterna-card cisterna-diesel"><h3>🛢️ CISTERNA 1: DIESEL</h3><div class="stock-display" id="stock_diesel_giust">0 L</div><div style="font-size:0.8rem; color:#6c757d;">Pompe: T3-1, T4-1</div></div>
@@ -296,5 +326,53 @@
     </div>
 
     <script src="app.js"></script>
+
+    <!-- 🔗 INTERCETTAZIONE E SOVRASCRITTURA APPOSITAMENTE STRUTTURATA PER PORTUENSE (3 TABELLE) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Monitora quando app.js ha caricato la funzione originaria
+            if (typeof loadDatabaseData === 'function') {
+                const originaleLoadDatabaseData = loadDatabaseData;
+                
+                // Sovrascrive il caricamento dati per gestire in modo avanzato le tre linee di Portuense
+                loadDatabaseData = function(impianto) {
+                    if (impianto === 'Portuense') {
+                        fetch(`/api/movimenti/Portuense`)
+                        .then(res => res.json())
+                        .then(response => {
+                            if (!response.success) return;
+                            ultimiMovimentiCaricati = response.data;
+                            aggiornaContatoriGiacenza('Portuense', response.data);
+
+                            const tD = document.getElementById('tbl_diesel_port');
+                            const tDP = document.getElementById('tbl_dieselplus_port');
+                            const tB = document.getElementById('tbl_benzina_port');
+
+                            if (tD) tD.innerHTML = '';
+                            if (tDP) tDP.innerHTML = '';
+                            if (tB) tB.innerHTML = '';
+
+                            response.data.forEach(row => {
+                                const dataFormattata = new Date(row.data_ora).toLocaleString('it-IT');
+                                let bCls = row.carburante === 'Diesel' ? 'badge-diesel' : (row.carburante === 'Diesel+' ? 'badge-dieselplus' : 'badge-benzina');
+                                if (row.operazione.includes("Carico")) bCls = "badge-carico";
+                                
+                                let sfr = row.sfrido !== null ? (parseFloat(row.sfrido) > 0 ? `<span style="color:#28a745; font-weight:bold;">+${parseFloat(row.sfrido).toFixed(1)} L</span>` : `<span style="color:#dc3545; font-weight:bold;">${parseFloat(row.sfrido).toFixed(1)} L</span>`) : '-';
+                                const btnE = `<button class="btn-elimina" onclick="eliminaRecord(${row.id}, 'Portuense')">🗑️ Elimina</button>`;
+                                const tr = `<tr><td>${dataFormattata}</td><td><span class="badge ${bCls}">${row.operazione}</span></td><td>${row.dettagli}</td><td>${sfr}</td><td>${btnE}</td></tr>`;
+
+                                if (row.carburante === 'Diesel' && tD) tD.innerHTML += tr;
+                                if (row.carburante === 'Diesel+' && tDP) tDP.innerHTML += tr;
+                                if (row.carburante === 'Benzina' && tB) tB.innerHTML += tr;
+                            });
+                        }).catch(err => console.error("Errore nel riempimento separato di Portuense:", err));
+                    } else {
+                        // Restanti impianti girano sulla logica nativa di app.js
+                        originaleLoadDatabaseData(impianto);
+                    }
+                };
+            }
+        });
+    </script>
 </body>
 </html>

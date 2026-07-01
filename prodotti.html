@@ -13,6 +13,10 @@
         .admin-section-card { display: none; background: #fffcf9; border: 2px dashed #e67e22; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .badge-mode { background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         .catalogo-item-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px dashed #dee2e6; font-size: 0.9rem; }
+        
+        /* 🎯 FIX CSS: Forza la comparsa dei pulsanti di modifica quando il pannello admin è sbloccato */
+        .admin-section-card .btn-modifica { display: inline-block !important; }
+        
         @media (max-width: 991px) {
             .prod-grid-header { display: none; }
             .prod-grid-row { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
@@ -42,11 +46,9 @@
             <p>Inventario con computo dei Carichi e dei Trasferimenti Merce</p>
         </header>
 
-        <!-- AREA DI GESTIONE ANAGRAFICA ESCLUSIVA ADMIN -->
         <div id="card_admin_prodotti" class="admin-section-card">
             <h3 style="margin-top:0; color:#e67e22; text-transform:uppercase;">✏️ Pannello Controllo Catalogo Centrale (Riservato Admin)</h3>
             
-            <!-- FORM NUOVO INSERIMENTO -->
             <div class="inputs-flex" style="align-items: flex-end; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ffe8cc;">
                 <div class="form-group" style="flex:2;">
                     <label>Descrizione / Nome Nuova Referenza</label>
@@ -61,11 +63,9 @@
                 </div>
             </div>
 
-            <!-- AREA MODIFICA PRODOTTI ESISTENTI -->
             <h4 style="margin: 15px 0 5px 0; color: #212529; text-transform: uppercase; font-size: 0.85rem;">📝 Modifica o Correggi Prodotti Esistenti</h4>
             <div id="lista_modifica_catalogo" style="background:#fff; border:1px solid #ffe8cc; border-radius:6px; max-height:220px; overflow-y:auto; padding:5px;">
-                <!-- Righe generate via JS -->
-            </div>
+                </div>
         </div>
 
         <div class="card">
@@ -82,8 +82,7 @@
                 </div>
 
                 <div id="box_righe_dinamiche">
-                    <!-- Righe generate via JS -->
-                </div>
+                    </div>
 
                 <button type="submit" class="btn-acquisto" style="width:100%; margin-top:25px; font-size:1.1rem; padding:16px;">💾 Trasmetti Inventario Serale a Database SQL</button>
             </form>
@@ -178,6 +177,7 @@
             }).catch(err => console.error(err));
         }
 
+        functionGrid = costruisciGriglia;
         function costruisciGriglia(storicoMovi = null) {
             const container = document.getElementById('box_righe_dinamiche');
             const vecchiValori = {};
@@ -310,7 +310,6 @@
             location.reload();
         }
 
-        // 🚀 ATTIVAZIONE DEL CARICAMENTO AUTOMATICO AL LANCIO DELLA PAGINA
         window.onload = caricaInizialeApplicazione;
     </script>
 </body>

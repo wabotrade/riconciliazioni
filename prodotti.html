@@ -3,165 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chiusura Prodotti Shop - Hub</title>
+    <title>Inventario Shop & Prodotti</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .prod-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--port-color); }
-        .prod-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; font-weight: bold; font-size: 0.85rem; color: #495057; padding: 5px 10px; text-transform: uppercase; }
-        .stock-static { background: #e9ecef; font-weight: bold; text-align: center; padding: 12px 10px; border-radius: 6px; border: 1px solid #dee2e6; font-size: 1rem; color: #495057; }
-        @media (max-width: 767px) {
-            .prod-header { display: none; }
-            .prod-row { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
-            .prod-row::before { content: attr(data-name); font-weight: bold; color: var(--diesel-color); font-size: 1rem; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
-            .form-group-mobile { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-            .form-group-mobile label { font-size: 0.8rem; min-width: 110px; color: #6c757d; font-weight: 600; }
-            .stock-static { padding: 8px; font-size: 0.95rem; width: 100%; text-align: right; background: none; border: none; }
+        .prod-grid-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; align-items: center; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border-left: 4px solid var(--port-color); }
+        .prod-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 8px; font-weight: bold; font-size: 0.8rem; color: #495057; padding: 5px 12px; text-transform: uppercase; text-align: center; }
+        .prod-grid-header div:first-child { text-align: left; }
+        .inp-dis { background: #e9ecef !important; text-align: center; font-weight: bold; color: #495057; }
+        .admin-section-card { display: none; background: #fffcf9; border: 2px dashed #e67e22; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .badge-mode { background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        @media (max-width: 991px) {
+            .prod-grid-header { display: none; }
+            .prod-grid-row { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
+            .prod-grid-row::before { content: attr(data-name); font-weight: bold; color: #212529; border-bottom: 1px dashed #ccc; padding-bottom: 4px; display: block; }
+            .m-group { display: flex; justify-content: space-between; align-items: center; }
+            .m-group label { font-size: 0.8rem; font-weight: bold; color: #6c757d; min-width: 140px; text-align: left; }
+            .prod-grid-row input { text-align: right !important; width: 100% !important; }
         }
     </style>
 </head>
 <body>
 
     <div class="admin-bar" style="justify-content: space-between;">
-        <span style="font-weight: bold; color: var(--diesel-color);" id="txt_titolo_impianto">📍 Caricamento impianto...</span>
-        <button class="btn-admin-toggle" onclick="location.href='index.html'">Comparto Carburanti ⛽</button>
+        <div>
+            <span style="font-weight: bold; color: #212529;" id="txt_titolo_impianto">📍 Caricamento...</span>
+            <span id="badge_ruolo" class="badge-mode">🔒 OPERATORE</span>
+        </div>
+        <div>
+            <button id="btn_shop_admin" class="btn-admin-toggle" onclick="toggleAdminShop()" style="background:#e67e22; margin-right:5px;">🔐 Sblocca Funzioni Admin</button>
+            <button class="btn-admin-toggle" onclick="location.href='index.html'">Hub Pompe ⛽</button>
+        </div>
     </div>
 
-    <div class="tab-content active" style="max-width: 900px; margin: 0 auto;">
+    <div class="tab-content active" style="max-width: 1100px; margin: 0 auto;">
         <header>
-            <h1>🛒 Inventario Serali Prodotti & Shop</h1>
-            <p>Riconciliazione Giornaliera Automatica a 10 Referenze</p>
+            <h1>🛒 Bilancio Giornaliero Prodotti Shop</h1>
+            <p>Inventario con computo dei Carichi e dei Trasferimenti Merce</p>
         </header>
 
+        <div id="card_admin_prodotti" class="admin-section-card">
+            <h3 style="margin-top:0; color:#e67e22; text-transform:uppercase;">✏️ Anagrafica Centrale & Catalogo Prodotti (Riservato Admin)</h3>
+            <div class="inputs-flex" style="align-items: flex-end;">
+                <div class="form-group" style="flex:2;">
+                    <label>Descrizione / Nome Nuova Referenza</label>
+                    <input type="text" id="new_prod_desc" placeholder="Es: Olio Idraulico 1L">
+                </div>
+                <div class="form-group">
+                    <label>Prezzo Consigliato (€)</label>
+                    <input type="number" id="new_prod_price" step="0.01" value="0.00">
+                </div>
+                <div class="form-group">
+                    <button onclick="salvaNuovoProdottoInAnagrafica()" class="btn-acquisto" style="margin:0; height:46px; background:#e67e22;">➕ Aggiungi al Catalogo</button>
+                </div>
+            </div>
+            <div style="margin-top:10px; font-size:0.85rem; color:#6c757d;">* Nota: Per modificare il prezzo di un bene esistente, modificalo direttamente nella tabella sotto in Modalità Admin.</div>
+        </div>
+
         <div class="card">
-            <h2>Rilevazione Giacenze e Prezzi Correnti</h2>
-            <form id="formChiusuraProdotti" onsubmit="salvaChiusuraProdotti(event)">
-                <div class="prod-header">
-                    <div>Descrizione Prodotto</div>
-                    <div style="text-align: center;">Giac. Ieri</div>
-                    <div>+ Carichi Oggi</div>
+            <h2>Compilazione Giacenze di Fine Giornata</h2>
+            <form id="formInventarioProdotti" onsubmit="trasmettiBilancioProdotti(event)">
+                <div class="prod-grid-header">
+                    <div>Descrizione Referenza</div>
+                    <div>Giac. Ieri</div>
+                    <div>+ Carichi</div>
+                    <div>+ Spost. IN</div>
+                    <div>- Spost. OUT</div>
                     <div>Prezzo (€)</div>
                     <div>Giac. Stasera</div>
                 </div>
-                
-                <div id="container_righe_prodotti">
+
+                <div id="box_righe_dinamiche">
                     </div>
 
-                <button type="submit" class="btn-acquisto" style="width:100%; margin-top:20px; font-size:1.1rem; padding:16px;">💾 Trasmetti Inventario a Database Prodotti</button>
+                <button type="submit" class="btn-acquisto" style="width:100%; margin-top:25px; font-size:1.1rem; padding:16px;">💾 Trasmetti Inventario Serale a Database SQL</button>
             </form>
         </div>
     </div>
 
     <script>
-        // 📋 L'ELENCO DELLE TUE 10 REFERENZE UFFICIALI OPERATIVE
-        const elencoReferenze = [
-            "Olio Motore 5W30 1L",
-            "Olio Motore 10W40 1L",
-            "Liquido Lavavetri 4L",
-            "AdBlue Tanica 5L",
-            "Antigelo Radiatore 1L",
-            "Profumatore Auto Assortito",
-            "Spazzole Tergicristallo",
-            "Lucido Cruscotti Spray",
-            "Panno Microfibra Auto",
-            "Additivo Pulizia Iniettori"
-        ];
+        let isShopAdmin = false;
+        let pinNegozio = "";
+        let anagraficaMappa = [];
 
         const urlParams = new URLSearchParams(window.location.search);
         const impiantoAttivo = urlParams.get('impianto') || 'Casal dei Pazzi';
-        document.getElementById('txt_titolo_impianto').innerText = `📍 SEDE OPERATIVA SHOP: ${impiantoAttivo.toUpperCase()}`;
+        document.getElementById('txt_titolo_impianto').innerText = `📍 AREA SHOP: ${impiantoAttivo.toUpperCase()}`;
 
-        // Iniezione dinamica dei campi
-        const container = document.getElementById('container_righe_prodotti');
-        elencoReferenze.forEach((prod, index) => {
-            container.innerHTML += `
-                <div class="prod-row" data-name="${prod}">
-                    <div class="prod-name-desktop" style="font-weight:600; color:#212529; font-size:0.95rem;">${prod}</div>
-                    <div class="form-group-mobile">
-                        <label class="prod-label-mobile">Giacenza Ieri:</label>
-                        <div class="stock-static" id="ieri_${index}">0</div>
-                    </div>
-                    <div class="form-group-mobile">
-                        <label class="prod-label-mobile">Carichi Oggi:</label>
-                        <input type="number" id="carico_${index}" value="0" step="1" required min="0" style="text-align:center;">
-                    </div>
-                    <div class="form-group-mobile">
-                        <label class="prod-label-mobile">Prezzo (€):</label>
-                        <input type="number" id="prezzo_${index}" value="0.00" step="0.01" required min="0" style="text-align:center;">
-                    </div>
-                    <div class="form-group-mobile">
-                        <label class="prod-label-mobile">Giacenza Stasera:</label>
-                        <input type="number" id="reale_${index}" value="0" step="1" required min="0" style="text-align:center;">
-                    </div>
-                </div>
-            `;
-        });
+        function toggleAdminShop() {
+            if (isShopAdmin) {
+                isShopAdmin = false; pinNegozio = "";
+                document.getElementById('badge_ruolo').innerText = "🔒 OPERATORE";
+                document.getElementById('badge_ruolo').style.background = "#6c757d";
+                document.getElementById('card_admin_prodotti').style.display = "none";
+                document.getElementById('btn_shop_admin').innerText = "🔐 Sblocca Funzioni Admin";
+                costruisciGriglia();
+            } else {
+                const check = prompt("🔐 INSERISCI PIN MASTER AMMINISTRATORE:");
+                if (check === "9999") {
+                    isShopAdmin = true; pinNegozio = check;
+                    document.getElementById('badge_ruolo').innerText = "🔓 AMMINISTRATORE";
+                    document.getElementById('badge_ruolo').style.background = "#28a745";
+                    document.getElementById('card_admin_prodotti').style.display = "block";
+                    document.getElementById('btn_shop_admin').innerText = "🔒 Blocca Funzioni Admin";
+                    costruisciGriglia();
+                } else if (check !== null) {
+                    alert("PIN Errato!");
+                }
+            }
+        }
 
-        // 🧠 LETTURA CRONOLOGIA DALLA NUOVA TABELLA SQL PER AUTOPRECOMPILARE "GIACENZA IERI"
-        fetch(`/api/prodotti/${encodeURIComponent(impiantoAttivo)}`)
-        .then(res => {
-            // Se la rotta specifica non esiste ancora o fallisce, proviamo a interrogare l'endpoint generale
-            if(!res.ok) return fetch(`/api/movimenti/${encodeURIComponent(impiantoAttivo)}`);
-            return res;
-        })
-        .then(res => res.json())
-        .then(response => {
-            if (!response.success || !response.data) return;
-            
-            elencoReferenze.forEach((prod, index) => {
-                // Trova l'ultimo record assoluto registrato per questa descrizione prodotto
-                const ultimoRecord = response.data.find(r => r.descrizione === prod || r.carburante === prod);
-                if (ultimoRecord) {
-                    // La giacenza stasera dell'ultima volta diventa la giacenza ieri di oggi
-                    const giacenzaRilevata = ultimoRecord.giacenza_stasera !== undefined ? ultimoRecord.giacenza_stasera : ultimoRecord.giacenza_reale;
-                    document.getElementById(`ieri_${index}`).innerText = giacenzaRilevata;
-                    document.getElementById(`reale_${index}`).value = giacenzaRilevata;
-                    
-                    if(ultimoRecord.prezzo) {
-                        document.getElementById(`prezzo_${index}`).value = parseFloat(ultimoRecord.prezzo).toFixed(2);
-                    }
+        function caricaInizialeApplicazione() {
+            fetch('/api/catalogo_prodotti')
+            .then(res => res.json())
+            .then(resAnag => {
+                anagraficaMappa = resAnag.data;
+                return fetch(`/api/prodotti/${encodeURIComponent(impiantoAttivo)}`);
+            })
+            .then(res => res.json())
+            .then(resStorico => {
+                costruisciGriglia(resStorico.data || []);
+            }).catch(err => console.error(err));
+        }
+
+        function costruisciGriglia(storicoMovi = null) {
+            const container = document.getElementById('box_righe_dinamiche');
+            // Salviamo i valori inseriti al volo per non perderli durante i toggle di ruolo
+            const vecchiValori = {};
+            anagraficaMappa.forEach((p, idx) => {
+                if(document.getElementById(`reale_${idx}`)) {
+                    vecchiValori[idx] = {
+                        carico: document.getElementById(`carico_${idx}`).value,
+                        sin: document.getElementById(`sin_${idx}`).value,
+                        sout: document.getElementById(`sout_${idx}`).value,
+                        prezzo: document.getElementById(`prezzo_${idx}`).value,
+                        reale: document.getElementById(`reale_${idx}`).value
+                    };
                 }
             });
-        }).catch(err => console.error("Errore precompilazione giacenze:", err));
 
-        function salvaChiusuraProdotti(event) {
-            event.preventDefault();
+            container.innerHTML = '';
+            
+            anagraficaMappa.forEach((prod, i) => {
+                // Estrae la rimanenza precedente registrata
+                let rimanenzaIeri = 0;
+                if (storicoMovi) {
+                    const ultimoLog = storicoMovi.find(s => s.descrizione === prod.descrizione);
+                    if (ultimoLog) rimanenzaIeri = ultimoLog.giacenza_stasera;
+                } else {
+                    rimanenzaIeri = parseInt(document.getElementById(`ieri_${i}`)?.innerText || 0);
+                }
+
+                const disClass = isShopAdmin ? '' : 'inp-dis';
+                const readonlyAttr = isShopAdmin ? '' : 'readonly';
+
+                container.innerHTML += `
+                    <div class="prod-grid-row" data-name="${prod.descrizione}">
+                        <div style="font-weight:600; color:#212529;">${prod.descrizione}</div>
+                        
+                        <div class="m-group">
+                            <label>Giacenza Ieri:</label>
+                            <div class="stock-static" id="ieri_${i}" style="padding:10px 0; text-align:center;">${rimanenzaIeri}</div>
+                        </div>
+                        
+                        <div class="m-group">
+                            <label>+ Carichi Oggi:</label>
+                            <input type="number" id="carico_${i}" class="${disClass}" ${readonlyAttr} value="0" min="0">
+                        </div>
+                        
+                        <div class="m-group" style="border-left: 2px dashed #ccc; padding-left:4px;">
+                            <label style="color:var(--ann-color);">+ Spostati (IN):</label>
+                            <input type="number" id="sin_${i}" class="${disClass}" ${readonlyAttr} value="0" min="0">
+                        </div>
+                        
+                        <div class="m-group">
+                            <label style="color:var(--giust-color);">- Spostati (OUT):</label>
+                            <input type="number" id="sout_${i}" class="${disClass}" ${readonlyAttr} value="0" min="0">
+                        </div>
+                        
+                        <div class="m-group">
+                            <label>Prezzo (€):</label>
+                            <input type="number" id="prezzo_${i}" class="${disClass}" ${readonlyAttr} step="0.01" value="${parseFloat(prod.prezzo_default).toFixed(2)}">
+                        </div>
+                        
+                        <div class="m-group" style="border-left: 2px solid #28a745; padding-left:4px;">
+                            <label style="color:#28a745; font-weight:bold;">Giacenza Stasera:</label>
+                            <input type="number" id="reale_${i}" value="${rimanenzaIeri}" min="0" style="border-color:#28a745; font-weight:bold;">
+                        </div>
+                    </div>
+                `;
+
+                // Ripristina i dati digitati se presenti
+                if(vecchiValori[i]) {
+                    document.getElementById(`carico_${i}`).value = vecchiValori[i].carico;
+                    document.getElementById(`sin_${i}`).value = vecchiValori[i].sin;
+                    document.getElementById(`sout_${i}`).value = vecchiValori[i].sout;
+                    if(isShopAdmin) document.getElementById(`prezzo_${i}`).value = vecchiValori[i].prezzo;
+                    document.getElementById(`reale_${i}`).value = vecchiValori[i].reale;
+                }
+            });
+        }
+
+        function salvaNuovoProdottoInAnagrafica() {
+            const descrizione = document.getElementById('new_prod_desc').value.trim();
+            const prezzo = parseFloat(document.getElementById('new_prod_price').value || 0);
+            if (!descrizione) return alert("Inserisci la descrizione!");
+
+            fetch('/api/catalogo_prodotti', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pinNegozio, descrizione, prezzo_default: prezzo })
+            }).then(res => res.json()).then(data => {
+                if(data.success) { alert("Prodotto inserito nel catalogo!"); location.reload(); }
+                else { alert("Errore: " + data.error); }
+            });
+        }
+
+        function trasmettiBilancioProdotti(e) {
+            e.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            if (!confirm(`Vuoi confermare l'inventario serale dei prodotti per l'impianto ${impiantoAttivo}?`)) return;
+            if(!confirm(`Confermare l'inventario prodotti di stasera per la sede di ${impiantoAttivo}?`)) return;
 
-            // Elabora ciascuna delle 10 righe singolarmente
-            elencoReferenze.forEach((prod, index) => {
-                const giacIeri = parseInt(document.getElementById(`ieri_${index}`).innerText || 0);
-                const caricoOggi = parseInt(document.getElementById('carico_' + index).value || 0);
-                const prezzoUnitario = parseFloat(document.getElementById('prezzo_' + index).value || 0);
-                const giacStasera = parseInt(document.getElementById('reale_' + index).value || 0);
+            anagraficaMappa.forEach((prod, i) => {
+                const giacIeri = parseInt(document.getElementById(`ieri_${i}`).innerText || 0);
+                const caricoOggi = parseInt(document.getElementById(`carico_${i}`).value || 0);
+                const spostatiIn = parseInt(document.getElementById(`sin_${i}`).value || 0);
+                const spostatiOut = parseInt(document.getElementById(`sout_${i}`).value || 0);
+                const prezzoCorrente = parseFloat(document.getElementById(`prezzo_${i}`).value || 0);
+                const giacStasera = parseInt(document.getElementById(`reale_${i}`).value || 0);
 
-                // Matematica a terna d'inventario serale: Venduto = Ieri + Carico - Stasera
-                const pezziVenduti = (giacIeri + caricoOggi) - giacStasera;
-                const vendutoReale = pezziVenduti >= 0 ? pezziVenduti : 0;
+                // Formula Algebrica dei flussi di stock: Ieri + Carico + Ingressi - Uscite - Stasera
+                const disponibile = giacIeri + caricoOggi + spostatiIn - spostatiOut;
+                let pezziVenduti = disponibile - giacStasera;
+                if (pezziVenduti < 0) pezziVenduti = 0; 
 
                 const payload = {
                     impianto: impiantoAttivo,
                     data_ora: dataOra,
-                    descrizione: prod,
-                    prezzo: prezzoUnitario,
+                    descrizione: prod.descrizione,
+                    prezzo: prezzoCorrente,
                     giacenza_ieri: giacIeri,
                     carico_oggi: caricoOggi,
+                    spostati_in: spostatiIn,
+                    spostati_out: spostatiOut,
                     giacenza_stasera: giacStasera,
-                    venduto: vendutoReale
+                    venduto: pezziVenduti
                 };
 
-                // Trasmissione record alla nuova tabella SQL dedicata
                 fetch('/api/salva_prodotto', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(err => console.error("Errore trasmissione riga shop:", err));
+                }).catch(err => console.error(err));
+
+                // Se l'admin ha variato il prezzo al volo, aggiorna l'anagrafica di default
+                if (isShopAdmin && prezzoCorrente !== prod.prezzo_default) {
+                    fetch(`/api/catalogo_prodotti/${prod.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pin: pinNegozio, descrizione: prod.descrizione, prezzo_default: prezzoCorrente })
+                    }).catch(err => console.error(err));
+                }
             });
 
-            alert("Inventario serale registrato correttamente nella nuova tabella MySQL!");
+            alert("Inventario serale trasmesso e salvato correttamente!");
             location.reload();
         }
+
+        window.onload = caricaInizialeApplicazione;
     </script>
 </body>
 </html>

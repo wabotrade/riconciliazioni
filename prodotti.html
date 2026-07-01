@@ -133,13 +133,12 @@
 
         document.getElementById('txt_titolo_impianto').innerText = `📍 SEDE ATTIVA: ${impiantoAttivo.toUpperCase()}`;
 
-        // Inizializza i selettori di trasferimento
         function inizializzaSelectTrasferimenti() {
             const selectDa = document.getElementById('trans_da_impianto');
             const selectA = document.getElementById('trans_a_impianto');
             
             selectDa.innerHTML = `<option value="${impiantoAttivo}" selected>${impiantoAttivo}</option>`;
-            // 🔒 BLOCCO DI SICUREZZA OPERATORE: impedisce di cambiare il magazzino sorgente
+            // 🔒 BLOCCO DI SICUREZZA: l'operatore non può deviare il magazzino di partenza
             selectDa.disabled = !isShopAdmin; 
 
             selectA.innerHTML = '';
@@ -182,7 +181,6 @@
                     document.getElementById('card_admin_prodotti').style.display = "block";
                     document.getElementById('btn_shop_admin').innerText = "🔒 Blocca Funzioni Admin";
                     
-                    // Sblocca il selettore di partenza se si è amministratori
                     document.getElementById('trans_da_impianto').disabled = false;
                     
                     aggiornaListaModificaCatalogo();
@@ -233,6 +231,7 @@
 
             anagraficaMappa.forEach(prod => {
                 const stockCalcolato = calcolaGiacenzaAttuale(prod.descrizione, storicoMovimentiCorrente);
+                // 🎯 FILTRO: mostra in inventario solo referenze maggiori di zero
                 if (stockCalcolato > 0) {
                     contatoreMostrati++;
                     box.innerHTML += `
@@ -276,11 +275,12 @@
 
                 anagraficaMappa.forEach(prod => {
                     const stockSorgente = calcolaGiacenzaAttuale(prod.descrizione, storicoMovimentiSorgenteTrasferimento);
+                    // 🎯 FILTRO TRASFERIMENTI: mostra solo prodotti con stock reale alla partenza
                     if (stockSorgente > 0) {
                         contatoreDisponibili++;
                         box.innerHTML += `
                             <div class="prod-grid-row" data-name="${prod.descrizione}">
-                                <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#007bff;">Giacenza attuale a ${sorgente = sedeSorgente}: ${stockSorgente} pz</small></div>
+                                <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#007bff;">Giacenza attuale a ${sedeSorgente}: ${stockSorgente} pz</small></div>
                                 <input type="number" id="g_trans_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo_default || 0}" value="0" step="1" required min="0" max="${stockSorgente}" style="text-align:center;">
                             </div>
                         `;
@@ -293,7 +293,7 @@
             }).catch(err => console.error(err));
         }
 
-        // 📊 SALVATAGGIO CON INIEZIONE RIEPILOGO COMMERCIALE POPUP
+        // 💾 SALVATAGGIO 1: TRASMETTI INVENTARIO CHIUSURA CON POPUP VENDITE ED INCASSI PREVISTI
         function trasmettiGiacenzaGiornaliera(e) {
             e.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -302,7 +302,7 @@
             let riepilogoTesto = `📊 RIEPILOGO COMMERCIALE DI STASERA\nSede: ${impiantoAttivo.toUpperCase()}\n----------------------------------------\n`;
             let totalePezziVenduti = 0;
             let totaleIncassoStimato = 0;
-            let arrayPromesse = [];
+            let pacchettoBatch = [];
 
             anagraficaMappa.forEach(prod => {
                 const input = document.getElementById(`g_reale_${prod.id}`);
@@ -320,57 +320,63 @@
                     totaleIncassoStimato += incassoRiga;
                 }
 
-                const payload = {
+                pacchettoBatch.push({
                     impianto: impiantoAttivo, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
                     giacenza_ieri: giacIeri, carico_oggi: 0, spostati_in: 0, spostati_out: 0,
                     giacenza_stasera: giacStasera, venduto: venduto
-                };
-
-                let promessaFetch = fetch('/api/salva_prodotto', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
                 });
-                arrayPromesse.push(promessaFetch);
             });
 
-            // Aspetta che tutte le righe siano salvate in MySQL prima di mostrare il riepilogo
-            Promise.all(arrayPromesse).then(() => {
+            fetch('/api/salva_prodotto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pacchettoBatch) // Spedisce il blocco array intero al server
+            })
+            .then(res => res.json())
+            .then(data => {
                 if (totalePezziVenduti === 0) {
                     riepilogoTesto += ` Nessun prodotto venduto oggi (Giacenze stabili).`;
                 } else {
                     riepilogoTesto += `----------------------------------------\n📦 TOTALE ARTICOLI SCARICATI: ${totalePezziVenduti} pz\n💰 INCASSO TOTALE SHOP PREVISTO: € ${totaleIncassoStimato.toFixed(2)}`;
                 }
-                alert(riepilogoTesto); // Blocca la schermata per permettere all'operatore di leggere il riepilogo
+                // 📊 MOSTRA IL RESOCONTO COMMERCIALE ALL'OPERATORE PRIMA DEL RELOAD
+                alert(riepilogoTesto); 
                 location.reload();
             }).catch(err => console.error(err));
         }
 
+        // 💾 SALVATAGGIO 2: TRASMETTI CARICHI FORNITORI IN BATCH
         function trasmettiCaricoFornitori(e) {
             e.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            let inseriti = 0;
+            let pacchettoBatchCarico = [];
 
             anagraficaMappa.forEach(prod => {
                 const input = document.getElementById(`g_carico_${prod.id}`);
                 const qta = parseInt(input.value || 0);
 
                 if (qta > 0) {
-                    inseriti++;
-                    const payload = {
+                    pacchettoBatchCarico.push({
                         impianto: impiantoAttivo, data_ora: dataOra, descrizione: prod.descrizione,
                         prezzo: parseFloat(input.getAttribute('data-price')), giacenza_ieri: 0,
                         carico_oggi: qta, spostati_in: 0, spostati_out: 0, giacenza_stasera: 0, venduto: 0
-                    };
-                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    });
                 }
             });
 
-            if(inseriti === 0) { alert("Nessuna quantità inserita."); return; }
-            alert("Carico fornitore registrato correttamente!");
-            location.reload();
+            if(pacchettoBatchCarico.length === 0) { alert("Nessuna quantità inserita."); return; }
+
+            fetch('/api/salva_prodotto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pacchettoBatchCarico)
+            }).then(() => {
+                alert("Carico fornitore salvato e notificato via mail!");
+                location.reload();
+            }).catch(err => console.error(err));
         }
 
+        // 💾 SALVATAGGIO 3: TRASMETTI TRASFERIMENTO BILANCIATO A PARTITA DOPPIA IN BATCH
         function trasmettiTrasferimentoMerce(e) {
             e.preventDefault();
             const sorgente = document.getElementById('trans_da_impianto').value;
@@ -383,7 +389,7 @@
             }
 
             if (!confirm(`Eseguire il trasferimento bilanciato da ${sorgente} a ${destinazione}?`)) return;
-            let eseguiti = 0;
+            let pacchettoBatchTrasferimento = [];
 
             anagraficaMappa.forEach(prod => {
                 const input = document.getElementById(`g_trans_${prod.id}`);
@@ -391,26 +397,28 @@
                 const qta = parseInt(input.value || 0);
 
                 if (qta > 0) {
-                    eseguiti++;
                     const prezzo = parseFloat(input.getAttribute('data-price'));
-
-                    const payloadOut = {
+                    pacchettoBatchTrasferimento.push({
                         impianto: sorgente, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
                         giacenza_ieri: 0, carico_oggi: 0, spostati_in: 0, spostati_out: qta, giacenza_stasera: 0, venduto: 0
-                    };
-                    const payloadIn = {
+                    });
+                    pacchettoBatchTrasferimento.push({
                         impianto: destinazione, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
                         giacenza_ieri: 0, carico_oggi: 0, spostati_in: qta, spostati_out: 0, giacenza_stasera: 0, venduto: 0
-                    };
-
-                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadOut) });
-                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadIn) });
+                    });
                 }
             });
 
-            if (eseguiti === 0) { alert("Inserisci una quantità valida da spostare."); return; }
-            alert("Trasferimento a partita doppia completato in MySQL!");
-            location.reload();
+            if (pacchettoBatchTrasferimento.length === 0) { alert("Inserisci una quantità valida da spostare."); return; }
+
+            fetch('/api/salva_prodotto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pacchettoBatchTrasferimento)
+            }).then(() => {
+                alert("Trasferimento a partita doppia salvato e inviato via mail!");
+                location.reload();
+            }).catch(err => console.error(err));
         }
 
         function aggiornaListaModificaCatalogo() {
@@ -456,7 +464,6 @@
             });
         }
 
-        // Avvio dell'applicazione
         window.onload = () => {
             inizializzaSelectTrasferimenti();
             caricaInizialeApplicazione();

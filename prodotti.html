@@ -13,7 +13,6 @@
         .catalogo-item-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px dashed #dee2e6; font-size: 0.9rem; }
         .admin-section-card .btn-modifica { display: inline-block !important; }
         
-        /* Area Switch Flussi Operatore */
         .op-mode-panel { display: none; animation: fadeIn 0.2s; }
         .op-mode-panel.active { display: block; }
         
@@ -101,22 +100,17 @@
                 <div class="transfer-header-box">
                     <div class="inputs-flex" style="margin-bottom:0;">
                         <div class="form-group">
-                            <label>🟢 Impianto di PARTENZA (Da dove esce)</label>
-                            <select id="trans_da_impianto" onchange="gestisciCambioSorgenteTrasferimento()"></select>
+                            <label>🟢 Impianto di PARTENZA (Blindato Sede Login)</label>
+                            <select id="trans_da_impianto" disabled style="background:#e9ecef; font-weight:bold; color:#495057;"></select>
                         </div>
                         <div class="form-group">
                             <label>🔴 Impianto di DESTINAZIONE (Dove arriva)</label>
-                            <select id="trans_a_impianto">
-                                <option value="Casal dei Pazzi">Casal dei Pazzi</option>
-                                <option value="Portuense">Portuense</option>
-                                <option value="Annibaliano">Annibaliano</option>
-                                <option value="Giustiniana">Giustiniana</option>
-                            </select>
+                            <select id="trans_a_impianto"></select>
                         </div>
                     </div>
                 </div>
                 <form onsubmit="trasmettiTrasferimentoMerce(event)">
-                    <p style="font-size:0.85rem; color:#6c757d; margin-top:-5px;">Vengono mostrati solo i prodotti disponibili presso l'impianto di partenza selezionato.</p>
+                    <p style="font-size:0.85rem; color:#6c757d; margin-top:-5px;">Vengono mostrati solo i prodotti disponibili presso il tuo magazzino di appartenenza.</p>
                     <div class="prod-grid-header"><div>Descrizione Prodotto</div><div style="text-align:center;">Q.tà da Trasferire</div></div>
                     <div id="box_rows_trasferimento"></div>
                     <button type="submit" class="btn-acquisto" style="width:100%; margin-top:20px; padding:16px; background:#007bff;">🔄 Esegui Trasferimento Bilanciato</button>
@@ -139,11 +133,22 @@
 
         document.getElementById('txt_titolo_impianto').innerText = `📍 SEDE ATTIVA: ${impiantoAttivo.toUpperCase()}`;
 
-        // Configura i menu a tendina degli spostamenti
-        const selectDa = document.getElementById('trans_da_impianto');
-        elencoImpianti.forEach(imp => {
-            selectDa.innerHTML += `<option value="${imp}" ${imp === impiantoAttivo ? 'selected' : ''}>${imp}</option>`;
-        });
+        // Inizializza i selettori di trasferimento
+        function inizializzaSelectTrasferimenti() {
+            const selectDa = document.getElementById('trans_da_impianto');
+            const selectA = document.getElementById('trans_a_impianto');
+            
+            selectDa.innerHTML = `<option value="${impiantoAttivo}" selected>${impiantoAttivo}</option>`;
+            // 🔒 BLOCCO DI SICUREZZA OPERATORE: impedisce di cambiare il magazzino sorgente
+            selectDa.disabled = !isShopAdmin; 
+
+            selectA.innerHTML = '';
+            elencoImpianti.forEach(imp => {
+                if (imp !== impiantoAttivo) {
+                    selectA.innerHTML += `<option value="${imp}">${imp}</option>`;
+                }
+            });
+        }
 
         function switchModalitaOperatore(target) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -166,6 +171,7 @@
                 document.getElementById('badge_ruolo').style.background = "#6c757d";
                 document.getElementById('card_admin_prodotti').style.display = "none";
                 document.getElementById('btn_shop_admin').innerText = "🔐 Sblocca Funzioni Admin";
+                inizializzaSelectTrasferimenti();
                 caricaInizialeApplicazione();
             } else {
                 const check = prompt("🔐 INSERISCI PIN MASTER AMMINISTRATORE:");
@@ -175,6 +181,10 @@
                     document.getElementById('badge_ruolo').style.background = "#28a745";
                     document.getElementById('card_admin_prodotti').style.display = "block";
                     document.getElementById('btn_shop_admin').innerText = "🔒 Blocca Funzioni Admin";
+                    
+                    // Sblocca il selettore di partenza se si è amministratori
+                    document.getElementById('trans_da_impianto').disabled = false;
+                    
                     aggiornaListaModificaCatalogo();
                     caricaInizialeApplicazione();
                 } else if (check !== null) {
@@ -198,19 +208,16 @@
             }).catch(err => console.error(err));
         }
 
-        // Calcola lo stock attuale applicando l'algoritmo di bilancio
         function calcolaGiacenzaAttuale(descrizione, storico) {
             let giacenza = 0;
             let stopIdx = storico.length;
             
-            // Trova l'ultimo inventario serale completo (dove carico e spostamenti sono a zero)
             let idxInventario = storico.findIndex(r => r.descrizione === descrizione && r.carico_oggi === 0 && r.spostati_in === 0 && r.spostati_out === 0);
             if (idxInventario !== -1) {
                 giacenza = parseInt(storico[idxInventario].giacenza_stasera || 0);
                 stopIdx = idxInventario;
             }
             
-            // Somma algebrica delle transazioni avvenute dopo l'ultimo inventario serale
             for (let i = 0; i < stopIdx; i++) {
                 if (storico[i].descrizione === descrizione) {
                     giacenza += parseInt(storico[i].carico_oggi || 0) + parseInt(storico[i].spostati_in || 0) - parseInt(storico[i].spostati_out || 0);
@@ -219,7 +226,6 @@
             return giacenza;
         }
 
-        // 1️⃣ VIEW GENERATION: GIACENZA GIORNALIERA (Solo prodotti > 0)
         function renderizzaPannelloGiacenza() {
             const box = document.getElementById('box_rows_giacenza');
             box.innerHTML = '';
@@ -227,40 +233,35 @@
 
             anagraficaMappa.forEach(prod => {
                 const stockCalcolato = calcolaGiacenzaAttuale(prod.descrizione, storicoMovimentiCorrente);
-                
-                // Filtro vincolante richiesto dall'utente
                 if (stockCalcolato > 0) {
                     contatoreMostrati++;
                     box.innerHTML += `
                         <div class="prod-grid-row" data-name="${prod.descrizione}">
-                            <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#6c757d;">Disponibilità contabile: ${stockCalcolato} pz</small></div>
-                            <input type="number" id="g_reale_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo || prod.prezzo_default || 0}" data-ieri="${stockCalcolato}" value="${stockCalcolato}" step="1" required min="0" style="text-align:center;">
+                            <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#6c757d;">Rimanenza contabile: ${stockCalcolato} pz</small></div>
+                            <input type="number" id="g_reale_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo_default || 0}" data-ieri="${stockCalcolato}" value="${stockCalcolato}" step="1" required min="0" style="text-align:center;">
                         </div>
                     `;
                 }
             });
 
             if(contatoreMostrati === 0) {
-                box.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545; font-weight:bold;">⚠️ Tutti i prodotti risultano a zero nel sistema. Impossibile chiudere giacenze.</div>';
+                box.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545; font-weight:bold;">⚠️ Tutti i prodotti risultano a zero stock in questa sede.</div>';
             }
         }
 
-        // 2️⃣ VIEW GENERATION: CARICHI FORNITORI (Tutti i prodotti per consentire il rifornimento)
         function renderizzaPannelloCarico() {
             const box = document.getElementById('box_rows_carico');
             box.innerHTML = '';
-            
             anagraficaMappa.forEach(prod => {
                 box.innerHTML += `
                     <div class="prod-grid-row" data-name="${prod.descrizione}">
                         <div style="font-weight:600; color:#212529;">${prod.descrizione}</div>
-                        <input type="number" id="g_carico_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo || prod.prezzo_default || 0}" value="0" step="1" required min="0" style="text-align:center;">
+                        <input type="number" id="g_carico_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo_default || 0}" value="0" step="1" required min="0" style="text-align:center;">
                     </div>
                 `;
             });
         }
 
-        // 3️⃣ VIEW GENERATION: TRASFERIMENTO MERCE (Solo prodotti sorgente > 0)
         function gestisciCambioSorgenteTrasferimento() {
             const sedeSorgente = document.getElementById('trans_da_impianto').value;
             const box = document.getElementById('box_rows_trasferimento');
@@ -275,39 +276,49 @@
 
                 anagraficaMappa.forEach(prod => {
                     const stockSorgente = calcolaGiacenzaAttuale(prod.descrizione, storicoMovimentiSorgenteTrasferimento);
-                    
-                    // Filtro trasferimento: Mostra solo ciò che la sede possiede realmente
                     if (stockSorgente > 0) {
                         contatoreDisponibili++;
                         box.innerHTML += `
                             <div class="prod-grid-row" data-name="${prod.descrizione}">
-                                <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#007bff;">Giacenza a ${sedeSorgente}: ${stockSorgente} pz</small></div>
-                                <input type="number" id="g_trans_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo || prod.prezzo_default || 0}" value="0" step="1" required min="0" max="${stockSorgente}" style="text-align:center;">
+                                <div style="font-weight:600; color:#212529;">${prod.descrizione}<br><small style="color:#007bff;">Giacenza attuale a ${sorgente = sedeSorgente}: ${stockSorgente} pz</small></div>
+                                <input type="number" id="g_trans_${prod.id}" data-desc="${prod.descrizione}" data-price="${prod.prezzo_default || 0}" value="0" step="1" required min="0" max="${stockSorgente}" style="text-align:center;">
                             </div>
                         `;
                     }
                 });
 
                 if (contatoreDisponibili === 0) {
-                    box.innerHTML = `<div style="text-align:center; padding:20px; color:#dc3545; font-weight:bold;">⚠️ L'impianto di ${sedeSorgente} non ha prodotti disponibili da trasferire.</div>`;
+                    box.innerHTML = `<div style="text-align:center; padding:20px; color:#dc3545; font-weight:bold;">⚠️ Nessun prodotto disponibile da trasferire presso la sede selezionata.</div>`;
                 }
             }).catch(err => console.error(err));
         }
 
-        // 💾 SALVATAGGIO 1: TRASMETTI INVENTARIO CHIUSURA SERALE
+        // 📊 SALVATAGGIO CON INIEZIONE RIEPILOGO COMMERCIALE POPUP
         function trasmettiGiacenzaGiornaliera(e) {
             e.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
             if (!confirm(`Vuoi salvare l'inventario di stasera per ${impiantoAttivo}?`)) return;
 
+            let riepilogoTesto = `📊 RIEPILOGO COMMERCIALE DI STASERA\nSede: ${impiantoAttivo.toUpperCase()}\n----------------------------------------\n`;
+            let totalePezziVenduti = 0;
+            let totaleIncassoStimato = 0;
+            let arrayPromesse = [];
+
             anagraficaMappa.forEach(prod => {
                 const input = document.getElementById(`g_reale_${prod.id}`);
-                if (!input) return; // Salta i prodotti filtrati a zero
+                if (!input) return; 
 
                 const giacIeri = parseInt(input.getAttribute('data-ieri'));
                 const prezzo = parseFloat(input.getAttribute('data-price'));
                 const giacStasera = parseInt(input.value);
                 const venduto = Math.max(0, giacIeri - giacStasera);
+
+                if (venduto > 0) {
+                    const incassoRiga = venduto * prezzo;
+                    riepilogoTesto += `• ${prod.descrizione}: ${venduto} pz x € ${prezzo.toFixed(2)} = € ${incassoRiga.toFixed(2)}\n`;
+                    totalePezziVenduti += venduto;
+                    totaleIncassoStimato += incassoRiga;
+                }
 
                 const payload = {
                     impianto: impiantoAttivo, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
@@ -315,18 +326,26 @@
                     giacenza_stasera: giacStasera, venduto: venduto
                 };
 
-                fetch('/api/salva_prodotto', {
+                let promessaFetch = fetch('/api/salva_prodotto', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(err => console.error(err));
+                });
+                arrayPromesse.push(promessaFetch);
             });
 
-            alert("Inventario serale registrato correttamente!");
-            location.reload();
+            // Aspetta che tutte le righe siano salvate in MySQL prima di mostrare il riepilogo
+            Promise.all(arrayPromesse).then(() => {
+                if (totalePezziVenduti === 0) {
+                    riepilogoTesto += ` Nessun prodotto venduto oggi (Giacenze stabili).`;
+                } else {
+                    riepilogoTesto += `----------------------------------------\n📦 TOTALE ARTICOLI SCARICATI: ${totalePezziVenduti} pz\n💰 INCASSO TOTALE SHOP PREVISTO: € ${totaleIncassoStimato.toFixed(2)}`;
+                }
+                alert(riepilogoTesto); // Blocca la schermata per permettere all'operatore di leggere il riepilogo
+                location.reload();
+            }).catch(err => console.error(err));
         }
 
-        // 💾 SALVATAGGIO 2: TRASMETTI NUOVI CARICHI FORNITORI
         function trasmettiCaricoFornitori(e) {
             e.preventDefault();
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -343,21 +362,15 @@
                         prezzo: parseFloat(input.getAttribute('data-price')), giacenza_ieri: 0,
                         carico_oggi: qta, spostati_in: 0, spostati_out: 0, giacenza_stasera: 0, venduto: 0
                     };
-
-                    fetch('/api/salva_prodotto', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    }).catch(err => console.error(err));
+                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 }
             });
 
             if(inseriti === 0) { alert("Nessuna quantità inserita."); return; }
-            alert("Carico fornitore salvato!");
+            alert("Carico fornitore registrato correttamente!");
             location.reload();
         }
 
-        // 💾 SALVATAGGIO 3: TRASMETTI MOVIMENTO SPOSTAMENTO BILANCIATO INTER-IMPIANTO
         function trasmettiTrasferimentoMerce(e) {
             e.preventDefault();
             const sorgente = document.getElementById('trans_da_impianto').value;
@@ -365,11 +378,11 @@
             const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
             if (sorgente === destinazione) {
-                alert("🚨 Errore: L'impianto di partenza e destinazione non possono coincidere!");
+                alert("🚨 Errore: L'impianto di partenza e destinazione coincidono!");
                 return;
             }
 
-            if (!confirm(`Eseguire il trasferimento da ${sorgente} a ${destinazione}?`)) return;
+            if (!confirm(`Eseguire il trasferimento bilanciato da ${sorgente} a ${destinazione}?`)) return;
             let eseguiti = 0;
 
             anagraficaMappa.forEach(prod => {
@@ -381,25 +394,22 @@
                     eseguiti++;
                     const prezzo = parseFloat(input.getAttribute('data-price'));
 
-                    // RIGA A: Scarico (OUT) dall'impianto sorgente
                     const payloadOut = {
                         impianto: sorgente, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
                         giacenza_ieri: 0, carico_oggi: 0, spostati_in: 0, spostati_out: qta, giacenza_stasera: 0, venduto: 0
                     };
-
-                    // RIGA B: Carico (IN) nell'impianto di destinazione
                     const payloadIn = {
                         impianto: destinazione, data_ora: dataOra, descrizione: prod.descrizione, prezzo: prezzo,
                         giacenza_ieri: 0, carico_oggi: 0, spostati_in: qta, spostati_out: 0, giacenza_stasera: 0, venduto: 0
                     };
 
-                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadOut) }).catch(err => console.error(err));
-                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadIn) }).catch(err => console.error(err));
+                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadOut) });
+                    fetch('/api/salva_prodotto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadIn) });
                 }
             });
 
             if (eseguiti === 0) { alert("Inserisci una quantità valida da spostare."); return; }
-            alert("Trasferimento merce bilanciato salvato in MySQL!");
+            alert("Trasferimento a partita doppia completato in MySQL!");
             location.reload();
         }
 
@@ -417,6 +427,21 @@
             });
         }
 
+        function avviaModificaAnagrafica(id, descVecchia, prezzoVecchio) {
+            const nuovaDesc = prompt("Modifica la descrizione del prodotto:", descVecchia);
+            if (nuovaDesc === null || nuovaDesc.trim() === "") return;
+            const nuovoPrezzo = prompt("Modifica il prezzo di listino (€):", prezzoVecchio);
+            if (nuovoPrezzo === null || nuovoPrezzo.trim() === "") return;
+
+            fetch(`/api/catalogo_prodotti/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pinNegozio, descrizione: nuovaDesc.trim(), prezzo_default: parseFloat(nuovoPrezzo) })
+            }).then(res => res.json()).then(data => {
+                if(data.success) { alert("Aggiornato!"); location.reload(); }
+            });
+        }
+
         function salvaNuovoProdottoInAnagrafica() {
             const descrizione = document.getElementById('new_prod_desc').value.trim();
             const prezzo = parseFloat(document.getElementById('new_prod_price').value || 0);
@@ -427,11 +452,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin: pinNegozio, descrizione, prezzo_default: prezzo })
             }).then(res => res.json()).then(data => {
-                if(data.success) { alert("Nuovo prodotto inserito!"); location.reload(); }
+                if(data.success) { alert("Inserito!"); location.reload(); }
             });
         }
 
-        window.onload = caricaInizialeApplicazione;
+        // Avvio dell'applicazione
+        window.onload = () => {
+            inizializzaSelectTrasferimenti();
+            caricaInizialeApplicazione();
+        };
     </script>
 </body>
 </html>

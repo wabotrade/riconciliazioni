@@ -2,65 +2,165 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione Prodotti - Hub Carburanti</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chiusura Prodotti Shop - Hub</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .prod-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--port-color); }
+        .prod-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; font-weight: bold; font-size: 0.85rem; color: #495057; padding: 5px 10px; text-transform: uppercase; }
+        .stock-static { background: #e9ecef; font-weight: bold; text-align: center; padding: 12px 10px; border-radius: 6px; border: 1px solid #dee2e6; font-size: 1rem; color: #495057; }
+        @media (max-width: 767px) {
+            .prod-header { display: none; }
+            .prod-row { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
+            .prod-row::before { content: attr(data-name); font-weight: bold; color: var(--diesel-color); font-size: 1rem; border-bottom: 1px dashed #ccc; padding-bottom: 4px; }
+            .form-group-mobile { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+            .form-group-mobile label { font-size: 0.8rem; min-width: 110px; color: #6c757d; font-weight: 600; }
+            .stock-static { padding: 8px; font-size: 0.95rem; width: 100%; text-align: right; background: none; border: none; }
+        }
+    </style>
 </head>
 <body>
-    <div class="admin-bar">
-        <a href="index.html" style="text-decoration: none; color: #6c757d; font-weight: bold;">⬅️ Torna ai Carburanti</a>
+
+    <div class="admin-bar" style="justify-content: space-between;">
+        <span style="font-weight: bold; color: var(--diesel-color);" id="txt_titolo_impianto">📍 Caricamento impianto...</span>
+        <button class="btn-admin-toggle" onclick="location.href='index.html'">Comparto Carburanti ⛽</button>
     </div>
 
-    <div class="tab-content active" style="padding: 15px; max-width: 800px; margin: 0 auto;">
+    <div class="tab-content active" style="max-width: 900px; margin: 0 auto;">
         <header>
-            <h1>🛒 Registro Prodotti & Shop</h1>
-            <p id="nome_impianto_attivo">Impianto: Caricamento...</p>
+            <h1>🛒 Inventario Serali Prodotti & Shop</h1>
+            <p>Riconciliazione Giornaliera Automatica a 10 Referenze</p>
         </header>
 
         <div class="card">
-            <h2>Registra Vendita / Carico Magazzino</h2>
-            <form id="form_prodotti" onsubmit="inviaMovimentoProdotto(event)">
-                <div class="inputs-flex">
-                    <div class="form-group">
-                        <label>Prodotto</label>
-                        <select id="p_nome" required>
-                            <option value="Olio Motore">🛢️ Olio Motore</option>
-                            <option value="Liquido Tergicristalli">💧 Liquido Tergicristalli</option>
-                            <option value="Lavaggio Auto">🚗 Servizio Lavaggio</option>
-                            <option value="Shop / Bar">☕ Articoli Shop</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Operazione</label>
-                        <select id="p_operazione" required>
-                            <option value="Vendita">📉 Vendita (Scarico)</option>
-                            <option value="Carico Rifornimento">🚚 Carico Rifornimento</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Quantità / Pezzi</label>
-                        <input type="number" id="p_quantita" step="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Prezzo Unitario (€)</label>
-                        <input type="number" id="p_prezzo" step="0.01" required>
-                    </div>
+            <h2>Rilevazione Giacenze e Prezzi Correnti</h2>
+            <form id="formChiusuraProdotti" onsubmit="salvaChiusuraProdotti(event)">
+                <div class="prod-header">
+                    <div>Descrizione Prodotto</div>
+                    <div style="text-align: center;">Giac. Ieri</div>
+                    <div>+ Carichi Oggi</div>
+                    <div>Prezzo (€)</div>
+                    <div>Giac. Stasera</div>
                 </div>
-                <button type="submit" class="btn-acquisto" style="width: 100%; margin-top: 15px;">💾 Registra nel Database</button>
+                
+                <div id="container_righe_prodotti">
+                    </div>
+
+                <button type="submit" class="btn-acquisto" style="width:100%; margin-top:20px; font-size:1.1rem; padding:16px;">💾 Trasmetti Inventario a Database Prodotti</button>
             </form>
         </div>
     </div>
 
     <script>
-        // Intercetta l'impianto dall'indirizzo web (es: prodotti.html?impianto=Portuense)
-        const urlParams = new URLSearchParams(window.location.search);
-        const impiantoAttivo = urlParams.get('impianto') || 'Non specificato';
-        document.getElementById('nome_impianto_attivo').innerText = `Impianto: ${impiantoAttivo}`;
+        // 📋 L'ELENCO DELLE TUE 10 REFERENZE UFFICIALI OPERATIVE
+        const elencoReferenze = [
+            "Olio Motore 5W30 1L",
+            "Olio Motore 10W40 1L",
+            "Liquido Lavavetri 4L",
+            "AdBlue Tanica 5L",
+            "Antigelo Radiatore 1L",
+            "Profumatore Auto Assortito",
+            "Spazzole Tergicristallo",
+            "Lucido Cruscotti Spray",
+            "Panno Microfibra Auto",
+            "Additivo Pulizia Iniettori"
+        ];
 
-        function inviaMovimentoProdotto(e) {
-            e.preventDefault();
-            // Qui andrà la fetch POST verso la nuova tabella prodotti che creeremo in server.js
-            alert(`Registrazione inviata per ${impiantoAttivo}`);
+        const urlParams = new URLSearchParams(window.location.search);
+        const impiantoAttivo = urlParams.get('impianto') || 'Casal dei Pazzi';
+        document.getElementById('txt_titolo_impianto').innerText = `📍 SEDE OPERATIVA SHOP: ${impiantoAttivo.toUpperCase()}`;
+
+        // Iniezione dinamica dei campi
+        const container = document.getElementById('container_righe_prodotti');
+        elencoReferenze.forEach((prod, index) => {
+            container.innerHTML += `
+                <div class="prod-row" data-name="${prod}">
+                    <div class="prod-name-desktop" style="font-weight:600; color:#212529; font-size:0.95rem;">${prod}</div>
+                    <div class="form-group-mobile">
+                        <label class="prod-label-mobile">Giacenza Ieri:</label>
+                        <div class="stock-static" id="ieri_${index}">0</div>
+                    </div>
+                    <div class="form-group-mobile">
+                        <label class="prod-label-mobile">Carichi Oggi:</label>
+                        <input type="number" id="carico_${index}" value="0" step="1" required min="0" style="text-align:center;">
+                    </div>
+                    <div class="form-group-mobile">
+                        <label class="prod-label-mobile">Prezzo (€):</label>
+                        <input type="number" id="prezzo_${index}" value="0.00" step="0.01" required min="0" style="text-align:center;">
+                    </div>
+                    <div class="form-group-mobile">
+                        <label class="prod-label-mobile">Giacenza Stasera:</label>
+                        <input type="number" id="reale_${index}" value="0" step="1" required min="0" style="text-align:center;">
+                    </div>
+                </div>
+            `;
+        });
+
+        // 🧠 LETTURA CRONOLOGIA DALLA NUOVA TABELLA SQL PER AUTOPRECOMPILARE "GIACENZA IERI"
+        fetch(`/api/prodotti/${encodeURIComponent(impiantoAttivo)}`)
+        .then(res => {
+            // Se la rotta specifica non esiste ancora o fallisce, proviamo a interrogare l'endpoint generale
+            if(!res.ok) return fetch(`/api/movimenti/${encodeURIComponent(impiantoAttivo)}`);
+            return res;
+        })
+        .then(res => res.json())
+        .then(response => {
+            if (!response.success || !response.data) return;
+            
+            elencoReferenze.forEach((prod, index) => {
+                // Trova l'ultimo record assoluto registrato per questa descrizione prodotto
+                const ultimoRecord = response.data.find(r => r.descrizione === prod || r.carburante === prod);
+                if (ultimoRecord) {
+                    // La giacenza stasera dell'ultima volta diventa la giacenza ieri di oggi
+                    const giacenzaRilevata = ultimoRecord.giacenza_stasera !== undefined ? ultimoRecord.giacenza_stasera : ultimoRecord.giacenza_reale;
+                    document.getElementById(`ieri_${index}`).innerText = giacenzaRilevata;
+                    document.getElementById(`reale_${index}`).value = giacenzaRilevata;
+                    
+                    if(ultimoRecord.prezzo) {
+                        document.getElementById(`prezzo_${index}`).value = parseFloat(ultimoRecord.prezzo).toFixed(2);
+                    }
+                }
+            });
+        }).catch(err => console.error("Errore precompilazione giacenze:", err));
+
+        function salvaChiusuraProdotti(event) {
+            event.preventDefault();
+            const dataOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+            if (!confirm(`Vuoi confermare l'inventario serale dei prodotti per l'impianto ${impiantoAttivo}?`)) return;
+
+            // Elabora ciascuna delle 10 righe singolarmente
+            elencoReferenze.forEach((prod, index) => {
+                const giacIeri = parseInt(document.getElementById(`ieri_${index}`).innerText || 0);
+                const caricoOggi = parseInt(document.getElementById('carico_' + index).value || 0);
+                const prezzoUnitario = parseFloat(document.getElementById('prezzo_' + index).value || 0);
+                const giacStasera = parseInt(document.getElementById('reale_' + index).value || 0);
+
+                // Matematica a terna d'inventario serale: Venduto = Ieri + Carico - Stasera
+                const pezziVenduti = (giacIeri + caricoOggi) - giacStasera;
+                const vendutoReale = pezziVenduti >= 0 ? pezziVenduti : 0;
+
+                const payload = {
+                    impianto: impiantoAttivo,
+                    data_ora: dataOra,
+                    descrizione: prod,
+                    prezzo: prezzoUnitario,
+                    giacenza_ieri: giacIeri,
+                    carico_oggi: caricoOggi,
+                    giacenza_stasera: giacStasera,
+                    venduto: vendutoReale
+                };
+
+                // Trasmissione record alla nuova tabella SQL dedicata
+                fetch('/api/salva_prodotto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(err => console.error("Errore trasmissione riga shop:", err));
+            });
+
+            alert("Inventario serale registrato correttamente nella nuova tabella MySQL!");
+            location.reload();
         }
     </script>
 </body>

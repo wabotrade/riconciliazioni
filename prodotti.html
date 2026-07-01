@@ -12,6 +12,7 @@
         .inp-dis { background: #e9ecef !important; text-align: center; font-weight: bold; color: #495057; }
         .admin-section-card { display: none; background: #fffcf9; border: 2px dashed #e67e22; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .badge-mode { background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .catalogo-item-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px dashed #dee2e6; font-size: 0.9rem; }
         @media (max-width: 991px) {
             .prod-grid-header { display: none; }
             .prod-grid-row { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
@@ -24,7 +25,7 @@
 </head>
 <body>
 
-    <div class="admin-bar" style="justify-content: space-between;">
+    <div class="admin-bar">
         <div>
             <span style="font-weight: bold; color: #212529;" id="txt_titolo_impianto">📍 Caricamento...</span>
             <span id="badge_ruolo" class="badge-mode">🔒 OPERATORE</span>
@@ -42,8 +43,9 @@
         </header>
 
         <div id="card_admin_prodotti" class="admin-section-card">
-            <h3 style="margin-top:0; color:#e67e22; text-transform:uppercase;">✏️ Anagrafica Centrale & Catalogo Prodotti (Riservato Admin)</h3>
-            <div class="inputs-flex" style="align-items: flex-end;">
+            <h3 style="margin-top:0; color:#e67e22; text-transform:uppercase;">✏️ Pannello Controllo Catalogo Centrale (Riservato Admin)</h3>
+            
+            <div class="inputs-flex" style="align-items: flex-end; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ffe8cc;">
                 <div class="form-group" style="flex:2;">
                     <label>Descrizione / Nome Nuova Referenza</label>
                     <input type="text" id="new_prod_desc" placeholder="Es: Olio Idraulico 1L">
@@ -53,10 +55,13 @@
                     <input type="number" id="new_prod_price" step="0.01" value="0.00">
                 </div>
                 <div class="form-group">
-                    <button onclick="salvaNuovoProdottoInAnagrafica()" class="btn-acquisto" style="margin:0; height:46px; background:#e67e22;">➕ Aggiungi al Catalogo</button>
+                    <button onclick="salvaNuovoProdottoInAnagrafica()" class="btn-acquisto" style="margin:0; height:46px; background:#e67e22; min-width:180px;">➕ Crea Nuovo</button>
                 </div>
             </div>
-            <div style="margin-top:10px; font-size:0.85rem; color:#6c757d;">* Nota: Per modificare il prezzo di un bene esistente, modificalo direttamente nella tabella sotto in Modalità Admin.</div>
+
+            <h4 style="margin: 15px 0 5px 0; color: #212529; text-transform: uppercase; font-size: 0.85rem;">📝 Modifica o Correggi Prodotti Esistenti</h4>
+            <div id="lista_modifica_catalogo" style="background:#fff; border:1px solid #ffe8cc; border-radius:6px; max-height:220px; overflow-y:auto; padding:5px;">
+                </div>
         </div>
 
         <div class="card">
@@ -105,6 +110,7 @@
                     document.getElementById('badge_ruolo').style.background = "#28a745";
                     document.getElementById('card_admin_prodotti').style.display = "block";
                     document.getElementById('btn_shop_admin').innerText = "🔒 Blocca Funzioni Admin";
+                    aggiornaListaModificaCatalogo();
                     costruisciGriglia();
                 } else if (check !== null) {
                     alert("PIN Errato!");
@@ -125,9 +131,52 @@
             }).catch(err => console.error(err));
         }
 
+        // Genera la lista interna per modificare l'anagrafica
+        function aggiornaListaModificaCatalogo() {
+            const box = document.getElementById('lista_modifica_catalogo');
+            if(!box) return;
+            box.innerHTML = '';
+            
+            anagraficaMappa.forEach(prod => {
+                box.innerHTML += `
+                    <div class="catalogo-item-row">
+                        <div><strong>${prod.descrizione}</strong> — Listino standard: <span style="color:#28a745; font-weight:bold;">€ ${parseFloat(prod.prezzo_default).toFixed(2)}</span></div>
+                        <button type="button" class="btn-modifica" onclick="avviaModificaAnagrafica(${prod.id}, '${prod.descrizione.replace(/'/g, "\\'")}', ${prod.prezzo_default})" style="margin:0; padding:4px 10px;">✏️ Modifica</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Funzione di modifica analitica dell'esistente sbloccata
+        function avviaModificaAnagrafica(id, descVecchia, prezzoVecchio) {
+            const nuovaDesc = prompt("Modifica la DESCRIZIONE o il nome del prodotto:", descVecchia);
+            if (nuovaDesc === null || nuovaDesc.trim() === "") return;
+
+            const nuovoPrezzo = prompt("Modifica il PREZZO DI LISTINO (€) per tutti gli impianti:", prezzoVecchio);
+            if (nuovoPrezzo === null || nuovoPrezzo.trim() === "") return;
+
+            fetch(`/api/catalogo_prodotti/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pin: pinNegozio,
+                    descrizione: nuovaDesc.trim(),
+                    prezzo_default: parseFloat(nuovoPrezzo)
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("Prodotto aggiornato correttamente nel database!");
+                    location.reload();
+                } else {
+                    alert("Errore durante il salvataggio: " + data.error);
+                }
+            }).catch(err => console.error(err));
+        }
+
         function costruisciGriglia(storicoMovi = null) {
             const container = document.getElementById('box_righe_dinamiche');
-            // Salviamo i valori inseriti al volo per non perderli durante i toggle di ruolo
             const vecchiValori = {};
             anagraficaMappa.forEach((p, idx) => {
                 if(document.getElementById(`reale_${idx}`)) {
@@ -144,7 +193,6 @@
             container.innerHTML = '';
             
             anagraficaMappa.forEach((prod, i) => {
-                // Estrae la rimanenza precedente registrata
                 let rimanenzaIeri = 0;
                 if (storicoMovi) {
                     const ultimoLog = storicoMovi.find(s => s.descrizione === prod.descrizione);
@@ -192,7 +240,6 @@
                     </div>
                 `;
 
-                // Ripristina i dati digitati se presenti
                 if(vecchiValori[i]) {
                     document.getElementById(`carico_${i}`).value = vecchiValori[i].carico;
                     document.getElementById(`sin_${i}`).value = vecchiValori[i].sin;
@@ -213,7 +260,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin: pinNegozio, descrizione, prezzo_default: prezzo })
             }).then(res => res.json()).then(data => {
-                if(data.success) { alert("Prodotto inserito nel catalogo!"); location.reload(); }
+                if(data.success) { alert("Nuovo prodotto inserito nel catalogo con successo!"); location.reload(); }
                 else { alert("Errore: " + data.error); }
             });
         }
@@ -232,7 +279,6 @@
                 const prezzoCorrente = parseFloat(document.getElementById(`prezzo_${i}`).value || 0);
                 const giacStasera = parseInt(document.getElementById(`reale_${i}`).value || 0);
 
-                // Formula Algebrica dei flussi di stock: Ieri + Carico + Ingressi - Uscite - Stasera
                 const disponibile = giacIeri + caricoOggi + spostatiIn - spostatiOut;
                 let pezziVenduti = disponibile - giacStasera;
                 if (pezziVenduti < 0) pezziVenduti = 0; 
@@ -244,8 +290,6 @@
                     prezzo: prezzoCorrente,
                     giacenza_ieri: giacIeri,
                     carico_oggi: caricoOggi,
-                    spostati_in: spostatiIn,
-                    spostati_out: spostatiOut,
                     giacenza_stasera: giacStasera,
                     venduto: pezziVenduti
                 };
@@ -254,23 +298,12 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(err => console.error(err));
-
-                // Se l'admin ha variato il prezzo al volo, aggiorna l'anagrafica di default
-                if (isShopAdmin && prezzoCorrente !== prod.prezzo_default) {
-                    fetch(`/api/catalogo_prodotti/${prod.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pin: pinNegozio, descrizione: prod.descrizione, prezzo_default: prezzoCorrente })
-                    }).catch(err => console.error(err));
-                }
+                }).catch(err => console.error("Errore trasmissione riga shop:", err));
             });
 
-            alert("Inventario serale trasmesso e salvato correttamente!");
+            alert("Inventario serale registrato correttamente!");
             location.reload();
         }
-
-        window.onload = caricaInizialeApplicazione;
     </script>
 </body>
 </html>

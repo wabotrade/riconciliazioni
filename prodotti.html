@@ -42,9 +42,11 @@
             <p>Inventario con computo dei Carichi e dei Trasferimenti Merce</p>
         </header>
 
+        <!-- AREA DI GESTIONE ANAGRAFICA ESCLUSIVA ADMIN -->
         <div id="card_admin_prodotti" class="admin-section-card">
             <h3 style="margin-top:0; color:#e67e22; text-transform:uppercase;">✏️ Pannello Controllo Catalogo Centrale (Riservato Admin)</h3>
             
+            <!-- FORM NUOVO INSERIMENTO -->
             <div class="inputs-flex" style="align-items: flex-end; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ffe8cc;">
                 <div class="form-group" style="flex:2;">
                     <label>Descrizione / Nome Nuova Referenza</label>
@@ -59,9 +61,11 @@
                 </div>
             </div>
 
+            <!-- AREA MODIFICA PRODOTTI ESISTENTI -->
             <h4 style="margin: 15px 0 5px 0; color: #212529; text-transform: uppercase; font-size: 0.85rem;">📝 Modifica o Correggi Prodotti Esistenti</h4>
             <div id="lista_modifica_catalogo" style="background:#fff; border:1px solid #ffe8cc; border-radius:6px; max-height:220px; overflow-y:auto; padding:5px;">
-                </div>
+                <!-- Righe generate via JS -->
+            </div>
         </div>
 
         <div class="card">
@@ -78,7 +82,8 @@
                 </div>
 
                 <div id="box_righe_dinamiche">
-                    </div>
+                    <!-- Righe generate via JS -->
+                </div>
 
                 <button type="submit" class="btn-acquisto" style="width:100%; margin-top:25px; font-size:1.1rem; padding:16px;">💾 Trasmetti Inventario Serale a Database SQL</button>
             </form>
@@ -131,7 +136,6 @@
             }).catch(err => console.error(err));
         }
 
-        // Genera la lista interna per modificare l'anagrafica
         function aggiornaListaModificaCatalogo() {
             const box = document.getElementById('lista_modifica_catalogo');
             if(!box) return;
@@ -140,19 +144,18 @@
             anagraficaMappa.forEach(prod => {
                 box.innerHTML += `
                     <div class="catalogo-item-row">
-                        <div><strong>${prod.descrizione}</strong> — Listino standard: <span style="color:#28a745; font-weight:bold;">€ ${parseFloat(prod.prezzo_default).toFixed(2)}</span></div>
+                        <div><strong>${prod.descrizione}</strong> — Listino: <span style="color:#28a745; font-weight:bold;">€ ${parseFloat(prod.prezzo_default).toFixed(2)}</span></div>
                         <button type="button" class="btn-modifica" onclick="avviaModificaAnagrafica(${prod.id}, '${prod.descrizione.replace(/'/g, "\\'")}', ${prod.prezzo_default})" style="margin:0; padding:4px 10px;">✏️ Modifica</button>
                     </div>
                 `;
             });
         }
 
-        // Funzione di modifica analitica dell'esistente sbloccata
         function avviaModificaAnagrafica(id, descVecchia, prezzoVecchio) {
             const nuovaDesc = prompt("Modifica la DESCRIZIONE o il nome del prodotto:", descVecchia);
             if (nuovaDesc === null || nuovaDesc.trim() === "") return;
 
-            const nuovoPrezzo = prompt("Modifica il PREZZO DI LISTINO (€) per tutti gli impianti:", prezzoVecchio);
+            const nuovoPrezzo = prompt("Modifica il PREZZO DI LISTINO (€):", prezzoVecchio);
             if (nuovoPrezzo === null || nuovoPrezzo.trim() === "") return;
 
             fetch(`/api/catalogo_prodotti/${id}`, {
@@ -167,7 +170,7 @@
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    alert("Prodotto aggiornato correttamente nel database!");
+                    alert("Prodotto aggiornato nel database!");
                     location.reload();
                 } else {
                     alert("Errore durante il salvataggio: " + data.error);
@@ -260,7 +263,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pin: pinNegozio, descrizione, prezzo_default: prezzo })
             }).then(res => res.json()).then(data => {
-                if(data.success) { alert("Nuovo prodotto inserito nel catalogo con successo!"); location.reload(); }
+                if(data.success) { alert("Nuovo prodotto inserito nel catalogo!"); location.reload(); }
                 else { alert("Errore: " + data.error); }
             });
         }
@@ -290,6 +293,8 @@
                     prezzo: prezzoCorrente,
                     giacenza_ieri: giacIeri,
                     carico_oggi: caricoOggi,
+                    spostati_in: spostatiIn,
+                    spostati_out: spostatiOut,
                     giacenza_stasera: giacStasera,
                     venduto: pezziVenduti
                 };
@@ -298,12 +303,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(err => console.error("Errore trasmissione riga shop:", err));
+                }).catch(err => console.error("Errore trasmissione:", err));
             });
 
             alert("Inventario serale registrato correttamente!");
             location.reload();
         }
+
+        // 🚀 ATTIVAZIONE DEL CARICAMENTO AUTOMATICO AL LANCIO DELLA PAGINA
+        window.onload = caricaInizialeApplicazione;
     </script>
 </body>
 </html>

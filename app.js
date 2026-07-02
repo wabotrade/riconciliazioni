@@ -100,7 +100,7 @@ function eseguiConsultazioneAdmin() {
 
             tbody.innerHTML += `<tr>
                 <td>${dataFormattata}<br><small style="color:#6c757d; font-weight:bold;">${row.impianto}</small></td>
-                <td><span class="badge ${badgeClass}">${row.carburante}</span><br><strong>${row.operazione}</strong></td>
+                <td><span class="badge ${badgeClass}">${row.operazione}</span><br><strong>${row.operazione}</strong></td>
                 <td>${row.dettagli}</td><td>${sfridoTesto}</td><td>${bottoneModifica}${bottoneElimina}</td>
             </tr>`;
         });
@@ -165,7 +165,10 @@ function loadDatabaseData(impianto) {
     fetch(`/api/movimenti/${encodeURIComponent(impianto)}`).then(res => res.json()).then(response => {
         if(!response.success) return;
         ultimiMovimentiCaricati = response.data;
-        aggiornaContCountersGiacenza(impianto, response.data);
+        
+        // 🎯 FIX: Corretto l'errore di battitura ripristinando il nome funzione esatto
+        aggiornaContatoriGiacenza(impianto, response.data);
+        
         const targetTbl = impianto === 'Casal dei Pazzi' ? 'tbl_diesel_casal' : (impianto === 'Annibaliano' ? 'tbl_diesel_ann' : (impianto === 'Giustiniana' ? 'tbl_diesel_giust' : 'tbl_generale_port'));
         
         if (impianto === 'Portuense') {
@@ -282,7 +285,7 @@ function riempiTabellaUnica(data, idT, imp) {
     });
 }
 
-// 🎯 LOGICA TRANSAZIONALE PARALLELA PER EVITARE RICE CONDITIONS side-carburanti
+// 🎯 LOGICA TRANSAZIONALE PARALLELA PER EVITARE RACE CONDITIONS PER I CONTATORI
 function inviaChiusura(event, impianto) {
     event.preventDefault(); 
     const dOra = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -295,7 +298,7 @@ function inviaChiusura(event, impianto) {
         if (!verificaCaricoDimenticato("Diesel", parseFloat(rD), parseFloat(cA1)+parseFloat(cB1)) || !verificaCaricoDimenticato("Benzina", parseFloat(rB), parseFloat(cA3)+parseFloat(cB3))) return;
         if (!confirm("Inviare i dati della chiusura di Casal dei Pazzi?")) return;
 
-        promesse.push(fetch('/api/salva_movimento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }) }));
+        promesse.push(fetch('/api/salva_movimento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ impianto, data_ora: dOra, operazione: "Chiusura Contators", carburante: "Diesel", dettagli: `A1: ${cA1} | B1: ${cB1}`, giacenza_reale: rD }) }));
         promesse.push(fetch('/api/salva_movimento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ impianto, data_ora: dOra, operazione: "Chiusura Contatori", carburante: "Benzina", dettagli: `A3: ${cA3} | B3: ${cB3}`, giacenza_reale: rB }) }));
 
     } else if (impianto === 'Portuense') {
@@ -377,7 +380,6 @@ function inviaCarico(event, impianto) {
     event.target.reset(); if(prf) document.getElementById(`container_var_${prf}`).style.display = 'none';
 }
 
-// 🖇️ AGGANCIO DEI COMPORTAMENTI SUI BOTTONI DELLE SCHEDE
 document.querySelectorAll('.tab-btn').forEach(button => {
     button.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));

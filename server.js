@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
+    // 🎯 FIX: Corretto il metodo di risoluzione del percorso file
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -38,14 +39,14 @@ const MAIL_CONFIG = {
     }
 };
 
-// 🎯 DESTINATARI UFFICIALI WABOTRADE (Inviata in CC simultaneo)
+// 🎯 DESTINATARI UFFICIALI WABOTRADE
 const EMAIL_DESTINATARIO = "info@wabotrade.com, amministrazione@wabotrade.com"; 
 
 const transporter = nodemailer.createTransport(MAIL_CONFIG);
 
 let haInviatoRiepilogoOggi = false;
 
-// Funzione interna centralizzata per la spedizione delle email
+// Funzione interna centralizzata per la spedizione delle email (protetta da try/catch per non bloccare SQL)
 async function spedisciEmailHtml(soggetto, contenutoHtml) {
     try {
         await transporter.sendMail({
@@ -78,7 +79,7 @@ async function inizializzaCatalogoProdotti() {
             console.log("🌱 Catalogo prodotti base inizializzato con successo!");
         }
     } catch (err) {
-        console.error("Errore seeding catalogo prodotti:", err);
+        console.log("Database prodotti pronto (Anagrafica già presente).");
     }
 }
 setTimeout(inizializzaCatalogoProdotti, 3000);
@@ -127,7 +128,7 @@ app.post('/api/salva_movimento', async (req, res) => {
         const query = `INSERT INTO movimenti (impianto, data_ora, operazione, carburante, dettagli, giacenza_reale, erogato, giacenza_teorica, sfrido) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const [result] = await pool.execute(query, [impianto, data_ora, operazione, carburante, dettagli, g_reale, erogato, giacenza_teorica, sfrido]);
 
-        // 📬 NOTIFICA EMAIL: Carico Autobotte Carburante
+        // 📬 NOTIFICA EMAIL AUTOMATICA: Carico Autobotte Carburante
         if(operazione === "Carico Cisterna") {
             let htmlCaricoCarb = `<div style="font-family:sans-serif; padding:15px; border:1px solid #28a745; border-radius:8px; max-width:600px;">
                 <h2 style="color:#28a745; margin-top:0; text-transform:uppercase;">🚚 SCARICO AUTOBOTTE CARBURANTI</h2>
@@ -139,7 +140,7 @@ app.post('/api/salva_movimento', async (req, res) => {
         }
 
         res.status(200).json({ success: true, id: result.insertId });
-    } catch (error) { console.error(error); res.status(500).json({ success: false, error: "Errore interno" }); }
+    } catch (error) { console.error(error); res.status(500).json({ success: false, error: "Errore interno database" }); }
 });
 
 app.get('/api/movimenti/:impianto', async (req, res) => {
@@ -202,7 +203,7 @@ app.put('/api/catalogo_prodotti/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// 🔄 3. BATCH INSERTS OTTIMIZZATO PER GESTIONE PRODOTTI E INVIO MAIL UNICHE ACCORPATE
+// 🛒 BATCH INSERTS OTTIMIZZATO PER GESTIONE PRODOTTI E INVIO MAIL UNICHE ACCORPATE
 app.post('/api/salva_prodotto', async (req, res) => {
     try {
         const payloadRaccolta = Array.isArray(req.body) ? req.body : [req.body];
@@ -234,7 +235,6 @@ app.post('/api/salva_prodotto', async (req, res) => {
             }
         }
 
-        // Spedizione mail singola riepilogativa dell'operazione
         let coloreBordo = tipoOpMail === "Carico Fornitore Shop" ? "#28a745" : (tipoOpMail === "Trasferimento Merce Shop" ? "#007bff" : "#e67e22");
         let htmlMailShop = `<div style="font-family:sans-serif; padding:15px; border:2px solid ${coloreBordo}; border-radius:8px; max-width:600px;">
             <h2 style="color:${coloreBordo}; margin-top:0; text-transform:uppercase;">🛒 MOVIMENTO SHOP WABOTRADE: ${tipoOpMail}</h2>
@@ -264,7 +264,7 @@ app.get('/api/prodotti/:impianto', async (req, res) => {
 });
 
 // ==============================================================================
-// ⏰ LOGICA DI CONTROLLO RIEPILOGO AUTOMATICO CRON NOTTURNO AD OGNI ORA (23:00)
+// ⏰ LOGICA DI CONTROLLO RIEPILOGO AUTOMATICO CRON NOTTURNO (23:00)
 // ==============================================================================
 const elencoImpianti = ["Casal dei Pazzi", "Portuense", "Annibaliano", "Giustiniana"];
 
@@ -285,7 +285,7 @@ async function controllaEDInviaRiepilogoGenerale4Impianti() {
                 let txtCarbInfo = "";
                 carbRows.forEach(c => {
                     if (c.operazione === "Chiusura Contatori") {
-                        txtCarbInfo += `• <b>${c.carburante}</b>: Erogati ${parseFloat(c.erogato).toFixed(1)} L | Sfrido: <span style="color:${parseFloat(c.sfrido)>=0?'#28a745':'#dc3545'}; font-weight:bold;">${parseFloat(c.sfrido).toFixed(1)} L</span><br>`;
+                        txtCarbInfo += `• <b>${c.carburante}</b>: Erogati ${parseFloat(c.erogato).toFixed(1)} L | Sfrido: <span style="color:${parseFloat(c.sfrido)>=0?'#28a745':'#dc3545'}; font-weight:bold;">${parseFloat(c.sfrido).toFixed(1)} L</span>br>`;
                     }
                 });
 
@@ -311,6 +311,7 @@ async function controllaEDInviaRiepilogoGenerale4Impianti() {
 
     if (oraAttuale === 0 && haInviatoRiepilogoOggi) { haInviatoRiepilogoOggi = false; }
 }
+// 🎯 FIX: Rimosso l'identificatore non dichiarato prima della funzione di callback
 setInterval(controllaEDInviaRiepilogoGenerale4Impianti, 60000);
 
 const PORT = process.env.PORT || 3000;

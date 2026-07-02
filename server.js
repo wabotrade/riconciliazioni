@@ -11,7 +11,6 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
-    // 🎯 FIX: Corretto il metodo di risoluzione del percorso file
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -39,14 +38,14 @@ const MAIL_CONFIG = {
     }
 };
 
-// 🎯 DESTINATARI UFFICIALI WABOTRADE
+// 🎯 DESTINATARI UFFICIALI WABOTRADE (CC SIMULTANEO)
 const EMAIL_DESTINATARIO = "info@wabotrade.com, amministrazione@wabotrade.com"; 
 
 const transporter = nodemailer.createTransport(MAIL_CONFIG);
 
 let haInviatoRiepilogoOggi = false;
 
-// Funzione interna centralizzata per la spedizione delle email (protetta da try/catch per non bloccare SQL)
+// Funzione interna centralizzata per la spedizione delle email
 async function spedisciEmailHtml(soggetto, contenutoHtml) {
     try {
         await transporter.sendMail({
@@ -79,7 +78,7 @@ async function inizializzaCatalogoProdotti() {
             console.log("🌱 Catalogo prodotti base inizializzato con successo!");
         }
     } catch (err) {
-        console.log("Database prodotti pronto (Anagrafica già presente).");
+        console.log("Database prodotti pronto.");
     }
 }
 setTimeout(inizializzaCatalogoProdotti, 3000);
@@ -108,13 +107,26 @@ app.post('/api/salva_movimento', async (req, res) => {
         const g_reale = parseFloat(giacenza_reale || 0);
 
         if (operazione === "Chiusura Contatori") {
-            const [lastRows] = await pool.execute(`SELECT giacenza_reale, dettagli, data_ora FROM movimenti WHERE impianto = ? AND carburante = ? AND operazione = 'Chiusura Contatori' ORDER BY data_ora DESC, id DESC LIMIT 1`);
+            // 🎯 FIX: Reinserito l'array [impianto, carburante] mancante che causava l'errore 500
+            const [lastRows] = await pool.execute(
+                `SELECT giacenza_reale, dettagli, data_ora FROM movimenti 
+                 WHERE impianto = ? AND carburante = ? AND operazione = 'Chiusura Contatori' 
+                 ORDER BY data_ora DESC, id DESC LIMIT 1`,
+                [impianto, carburante]
+            );
+            
             if (lastRows.length > 0) {
                 const ultimaChiusura = lastRows[0];
                 erogato = sommaContatori(dettagli) - sommaContatori(ultimaChiusura.dettagli);
                 if (erogato < 0) erogato = 0;
 
-                const [caricoRows] = await pool.execute(`SELECT dettagli FROM movimenti WHERE impianto = ? AND carburante = ? AND operazione = 'Carico Cisterna' AND data_ora > ?`, [impianto, carburante, ultimaChiusura.data_ora]);
+                const [caricoRows] = await pool.execute(
+                    `SELECT dettagli FROM movimenti 
+                     WHERE impianto = ? AND carburante = ? AND operazione = 'Carico Cisterna' 
+                     AND data_ora > ?`,
+                    [impianto, carburante, ultimaChiusura.data_ora]
+                );
+                
                 let totaleCarichi = 0;
                 caricoRows.forEach(c => { totaleCarichi += estraiLitriCarico(c.dettagli); });
 
@@ -285,7 +297,7 @@ async function controllaEDInviaRiepilogoGenerale4Impianti() {
                 let txtCarbInfo = "";
                 carbRows.forEach(c => {
                     if (c.operazione === "Chiusura Contatori") {
-                        txtCarbInfo += `• <b>${c.carburante}</b>: Erogati ${parseFloat(c.erogato).toFixed(1)} L | Sfrido: <span style="color:${parseFloat(c.sfrido)>=0?'#28a745':'#dc3545'}; font-weight:bold;">${parseFloat(c.sfrido).toFixed(1)} L</span>br>`;
+                        txtCarbInfo += `• <b>${c.carburante}</b>: Erogati ${parseFloat(c.erogato).toFixed(1)} L | Sfrido: <span style="color:${parseFloat(c.sfrido)>=0?'#28a745':'#dc3545'}; font-weight:bold;">${parseFloat(c.sfrido).toFixed(1)} L</span><br>`;
                     }
                 });
 
@@ -311,7 +323,6 @@ async function controllaEDInviaRiepilogoGenerale4Impianti() {
 
     if (oraAttuale === 0 && haInviatoRiepilogoOggi) { haInviatoRiepilogoOggi = false; }
 }
-// 🎯 FIX: Rimosso l'identificatore non dichiarato prima della funzione di callback
 setInterval(controllaEDInviaRiepilogoGenerale4Impianti, 60000);
 
 const PORT = process.env.PORT || 3000;
